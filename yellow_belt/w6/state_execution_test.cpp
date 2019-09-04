@@ -2,10 +2,10 @@
 // Created by dkushn on 04.09.19.
 //
 
-#include "condition_parser_my.h"
+#include "condition_parser.h"
 #include "test_runner.h"
 #include "database.h"
-#include "condition_parser_my.h"
+#include "condition_parser.h"
 #include "event_parser.h"
 
 #include <sstream>

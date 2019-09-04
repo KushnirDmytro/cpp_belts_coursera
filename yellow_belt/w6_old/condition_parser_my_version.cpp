@@ -8,8 +8,8 @@
 #include <istream>
 #include <iterator>
 
-#include "condition_parser_my.h"
-#include "token.h"
+#include "../w6/condition_parser.h"
+#include "../w6/token.h"
 
 
 shared_ptr<Node> comparison_node_builder (const vector<Token> &toks) {

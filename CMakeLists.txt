@@ -17,12 +17,13 @@ add_executable(cpp_belts
         yellow_belt/w6/node.h
         yellow_belt/w6/date.cpp
         yellow_belt/w6/database.cpp
-        yellow_belt/w6/condition_parser_my.cpp
-        yellow_belt/w6/test_runner.cpp yellow_belt/w6/state_execution_test.cpp
+#        yellow_belt/w6/condition_parser_my_version.cpp
+        yellow_belt/w6/test_runner.cpp
+        yellow_belt/w6/state_execution_test.cpp
         yellow_belt/w6/event_parser.cpp
         yellow_belt/w6/event_parser.h
-        yellow_belt/w6/condition_parser_my.cpp
-#        yellow_belt/w6/condition_parser_how_it_should_be.cpp
+        yellow_belt/w6/condition_parser.cpp
+#        yellow_belt/w6/condition_parser_my_version.cpp
         )
 
 #add_executable(cpp_belts main.cpp)
