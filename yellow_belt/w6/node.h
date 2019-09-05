@@ -31,12 +31,9 @@ enum class Comparison{
 
 
 class Node {
-//    shared_ptr<Node> lhs{nullptr};
-//    shared_ptr<Node> rhs{nullptr};
 public:
 
-    Node()
-    = default;;
+    Node()= default;
 
     virtual bool Evaluate(const Date& date, const string& event) = 0;
 };

@@ -9,20 +9,6 @@
 using namespace std;
 
 
-//const map<string, CompareOps> CompareNode::available_compare_operations = {
-//        {"<", CompareOps::opLess },
-//        {"<=", CompareOps::opLessEequal },
-//        {">", CompareOps::opGreater },
-//        {">=", CompareOps::opGreaterEqual },
-//        {"==", CompareOps::opEqualTo },
-//        {"!=", CompareOps::opNotEqualTo }
-//};
-
-
-//LogicalOperationNode::LogicalOperationNode(const Token &tok) : nodes_tok_{tok}
-//{
-//};
-
 void LogicalOperationNode::SetLeftOperand(const shared_ptr<Node> &new_lhs){
     left_operand_ = new_lhs;
 }

@@ -18,7 +18,8 @@ using namespace std;
 
 class Database {
 
-    map<Date,vector<string>> events;
+    map<Date,set<string>> events_;
+    map<Date,vector<string>> history_;
 
     enum commands{
         cAdd, cDel, cPrint, cFind
@@ -40,7 +41,6 @@ public:
 
     int  DeleteDate(const Date& date);
 
-//    vector<string> Find(const Date& date) const;
 
     void Print(ostream &os) const;
 
@@ -50,42 +50,39 @@ public:
     int RemoveIf(const std::function<bool(Date, string)> &p) {
         int removed_els{0};
         vector<Date> empty_keys;
-        for (auto &pair: events) {
+        for (auto &pair: history_) {
 
             auto remove_it = stable_partition( pair.second.begin(), pair.second.end(),
                     [p, pair](const auto &el){ return !p(pair.first, el);}
                     );
 
             removed_els += distance(remove_it, pair.second.end());
-//            cout << " before erase" << endl;
-//            for (const auto & el: pair.second){
-//                cout << el << ' ';
-//            }
-//            cout << endl;
+
+            for(auto event_to_remove = remove_it; event_to_remove != pair.second.end(); event_to_remove = next(event_to_remove)){
+                events_[pair.first].erase(*event_to_remove);
+            }
+
             pair.second.erase(remove_it, pair.second.end());
 
-//            cout << "AFTER ERASE" << endl;
-//            for (const auto & el: pair.second){
-//                cout << el << ' ';
-//            }
-//            cout << endl;
 
             if (pair.second.empty()){
                 empty_keys.emplace_back(pair.first);
             }
         }
 
-        for(const auto& empty_key: empty_keys)
-            events.erase(empty_key);
+        for(const auto& empty_key: empty_keys){
+            history_.erase(empty_key);
+            events_.erase(empty_key);
+        }
+
 
         return removed_els;
     }
 
-//    template <typename Predicate>
     vector<pair<Date,string>> FindIf(const std::function<bool(Date, string)> &p) const
     {
         vector<pair<Date,string>> results;
-        for (const auto &pair: events){
+        for (const auto &pair: history_){
             for(auto find_it = find_if( pair.second.begin(), pair.second.end(),
                                         [p, pair](const string& event_name){
                                             return p(pair.first, event_name);});

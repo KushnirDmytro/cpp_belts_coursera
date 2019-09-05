@@ -12,20 +12,23 @@
 
 
 void Database::Add(const Date& date, const string& event){
-    auto events_at_date = events.find(date);
-    if ( events_at_date != events.end() ){
-        if ( find(events_at_date->second.begin(), events_at_date->second.end(), event) == events_at_date->second.end()){
-            events[date].emplace_back(event);  // do not add if it is present
-        }
+
+    auto events_at_date = events_.find(date);
+    if ( events_at_date != events_.end() ){
+        auto  result_of_event_addition = events_at_date->second.insert(event);
+        bool &addition_of_new_element = result_of_event_addition.second;
+        if (addition_of_new_element)
+            history_[date].emplace_back(event);
     } else {
-        events[date].emplace_back(event);
+        events_[date].insert(event);
+        history_[date].emplace_back(event);
     }
 }
 
 bool Database::DeleteEvent(const Date& date, const string& event){
     bool erased{false};
-    auto events_at_date = events.find(date);
-    if (events_at_date != events.end()){
+    auto events_at_date = events_.find(date);
+    if (events_at_date != events_.end()){
         auto iter_on_event = find(events_at_date->second.begin(), events_at_date->second.end(), event);
         if(iter_on_event != events_at_date->second.end()){
             events_at_date->second.erase(iter_on_event);
@@ -38,47 +41,28 @@ bool Database::DeleteEvent(const Date& date, const string& event){
 
 int  Database::DeleteDate(const Date& date){
     int n_deleted_elements{0};
-    if (events.find(date) != events.end()){
-        n_deleted_elements = events.at(date).size();
-        events.erase(date);
+    if (events_.find(date) != events_.end()){
+        n_deleted_elements = events_.at(date).size();
+        events_.erase(date);
     }
     return n_deleted_elements;
 }
 
-//vector<string> Database::Find(const Date& date) const{
-//    if (events.find(date) != events.end()){
-//        return events.at(date);
-//    } else {
-//        return vector<string>();
-//    }
-//}
 
 pair<Date,string> Database::Last(const Date &d) const{
-    auto upperBound = events.upper_bound(d);
+    auto upperBound = history_.upper_bound(d);
 
-    if (upperBound == events.begin()) {
+    if (upperBound == history_.begin()) {
         throw invalid_argument("");
     }
 
     auto result = std::prev(upperBound);
     return {result->first, result->second.back()};
 
-//    std::stringstream os;
-
-//    os << result->first << " " << result-> second.back();
-//    return os.str();
-
-//    auto pd = make_pair<const Date, set<string>>((const Date &&) d, {});
-//    auto last_up_to_date = lower_bound(events.rbegin(), events.rend(), pd, [](const auto &lhs, const auto &rhs){ return lhs.first > rhs.first;});
-//    if (last_up_to_date != events.rend()){
-//        return  {last_up_to_date->first, last_up_to_date->second.back()}; // FIXME !!! have to use vector instead of set...
-//    } else {
-//        throw invalid_argument("");
-//    }
 }
 
 void Database::Print(ostream &os) const{
-    for (const auto &date_events: events){
+    for (const auto &date_events: history_){
         for (const auto& event: date_events.second){
             os << date_events.first << ' ' << event << endl;
         }
