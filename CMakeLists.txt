@@ -10,20 +10,7 @@ set(CMAKE_CXX_STANDARD 14)
 #add_library(palindrome white_belt/w2/IsPalindrom.cpp)
 
 add_executable(cpp_belts
-        yellow_belt/w6/main.cpp
-        yellow_belt/w6/token.cpp
-        yellow_belt/w6/condition_parser_test.cpp
-        yellow_belt/w6/node.cpp
-        yellow_belt/w6/node.h
-        yellow_belt/w6/date.cpp
-        yellow_belt/w6/database.cpp
-#        yellow_belt/w6/condition_parser_my_version.cpp
-        yellow_belt/w6/test_runner.cpp
-        yellow_belt/w6/state_execution_test.cpp
-        yellow_belt/w6/event_parser.cpp
-        yellow_belt/w6/event_parser.h
-        yellow_belt/w6/condition_parser.cpp
-#        yellow_belt/w6/condition_parser_my_version.cpp
+        red_belt/w1/deque_from_vectors.cpp
         )
 
 #add_executable(cpp_belts main.cpp)
