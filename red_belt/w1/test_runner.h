@@ -52,9 +52,13 @@ ostream& operator << (ostream& os, const map<K, V>& m) {
     return os << "}";
 }
 
+
 template<class T, class U>
 void AssertEqual(const T& t, const U& u, const string& hint = {}) {
     if (!(t == u)) {
+        cout << '[' << t << ']' << endl;
+        cout << '[' << u << ']' << endl;
+        cout << '[' << hint << ']' << endl;
         ostringstream os;
         os << "Assertion failed: " << t << " != " << u;
         if (!hint.empty()) {
@@ -96,10 +100,10 @@ private:
 };
 
 #define ASSERT_EQUAL(x, y) {            \
-  ostringstream os;                     \
-  os << #x << " != " << #y << ", "      \
+  ostringstream assertion_hint_ostream;                     \
+  assertion_hint_ostream << (#x) << " != " << #y << ", "      \
     << __FILE__ << ":" << __LINE__;     \
-  AssertEqual(x, y, os.str());          \
+  AssertEqual(x, y, assertion_hint_ostream.str());          \
 }
 
 #define ASSERT(x) {                     \
