@@ -23,9 +23,12 @@ if(MULTITHREADED_BUILD)
     endif()
 endif()
 
+
 add_executable(cpp_belts
-        red_belt/w2/learner.cpp
-        red_belt/w2/main.cpp)
+#        red_belt/w2/slow_book.cpp
+#        red_belt/w2/main.cpp
+        red_belt/w2/booking.cpp
+        )
 
 #add_executable(cpp_belts main.cpp)
 
