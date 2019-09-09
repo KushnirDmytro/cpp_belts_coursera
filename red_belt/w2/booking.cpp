@@ -23,7 +23,7 @@ using  record = pair<client_id_t, n_rooms_t>;
 using  hotel_daylog = deque< pair <bookin_time_t, record> >;
 
 struct HotelInfo{
-    hotel_daylog log;
+//    hotel_daylog log;
     n_rooms_t rooms;
     n_rooms_t clients;
     map<client_id_t, int> active_bookings;
@@ -44,86 +44,55 @@ public:
     void Book(
             const bookin_time_t &t,
             const string &hotel_name,
-            const client_id_t cl_id,
-            const n_rooms_t n_r){
+            const client_id_t &cl_id,
+            const n_rooms_t &n_r){
         auto &referenced_hotel = booked[hotel_name];
 
-        const auto &lb = referenced_hotel.active_bookings.lower_bound(cl_id);
         if (n_r != 0){ // TODO check if it is required
-            if (lb == referenced_hotel.active_bookings.end() || lb->first != cl_id)
+            int old_booking = referenced_hotel.active_bookings[cl_id]++;
+            if (old_booking == 0){
                 referenced_hotel.clients += 1;
-            ++referenced_hotel.active_bookings[cl_id];
-            referenced_hotel.log.push_back({t, {cl_id, n_r}});
+            }
+            global_journal.push_back({t, hotel_name, cl_id, n_r});
             referenced_hotel.rooms += n_r;
         }
 
         expired_timestamp = t - DAY_SPAN;
-
         UpdateDaylog();
     }
+
     void Book(const Event &ev){
         Book(ev.time, ev.hotel_name, ev.id, ev.rooms);
     }
 
 
     int Rooms(const string &h_name){
-        if (booked.find(h_name) == booked.end())
-            return 0;
-
-        HotelInfo hotel_records = booked[h_name];
-//        UpdateDaylog(hotel_records);
-        return hotel_records.rooms;
+        return booked[h_name].rooms;
     }
 
     int Clients(const string &h_name) {
-        if (booked.find(h_name) == booked.end())
-            return 0;
-
-        HotelInfo &hotel_records = booked[h_name];
-//        UpdateDaylog(hotel_records);
-
-//        return hotel_records.active_bookings.size();
-        return hotel_records.clients;
-//        set<client_id_t> rooms_sum = accumulate(
-//                hotel_records.begin(), hotel_records.end(), set<client_id_t>{},
-//                [](set<client_id_t> &accum, const pair<bookin_time_t , record> &operand){ accum.insert(operand.second.first); return accum; }
-//        );
-//        return rooms_sum.size();
+        return  booked[h_name].clients;
     }
 
 private:
-//    void UpdateDaylog(HotelInfo &h_info){
     void UpdateDaylog(){
-        for (auto &name_info : booked){
-            HotelInfo &h_info = name_info.second;
-            hotel_daylog &daylog = h_info.log;
-            while(!daylog.empty()){
-                const auto booking_to_delete = daylog.front();
-                if (booking_to_delete.first > expired_timestamp)
-                    break;
-                h_info.rooms -= booking_to_delete.second.second;
-                --h_info.active_bookings[booking_to_delete.second.first];
-                if ( h_info.active_bookings[booking_to_delete.second.first] == 0 ){
-                    h_info.active_bookings.erase(booking_to_delete.second.first); // todo maybe live the trash here?
-                    h_info.clients -= 1;
-                }
-                daylog.pop_front();
+        while ( !global_journal.empty() && global_journal.front().time <= expired_timestamp){
+            auto &info_token = global_journal.front();
+            HotelInfo& updated_hotel = booked[info_token.hotel_name];
+            updated_hotel.rooms -= info_token.rooms;
+            updated_hotel.active_bookings[info_token.id] -= 1;
+            if (updated_hotel.active_bookings[info_token.id] == 0){
+                updated_hotel.active_bookings.erase(info_token.id);
+                updated_hotel.clients -= 1;
             }
+            global_journal.pop_front();
         }
 
-
-//        map<client_id_t, set<bookin_time_t>> &active_bookings = h_info.active_bookings;
-//        vector<client_id_t> empty_clients;
-//        for (const auto &booking: active_bookings){
-//            if (booking.second.empty())
-//                empty_clients.emplace_back(booking.first);
-//        }
-//        for (const auto &key: empty_clients)
-//            active_bookings.erase(key);
     }
 
     map<string, HotelInfo> booked;
     bookin_time_t expired_timestamp;
+    deque<Event> global_journal;
     static const int DAY_SPAN = 86'400;
 };
 
@@ -252,11 +221,12 @@ void TestGetClients() {
         M.Book(times[i], "A", 1000, 0);               //  == "A": -, t = 10
         M.Book(times[i], "A", 10000, 10);             //  + 1 "A": "1", t = 10
         M.Book(times[i], "B", 10000, 10);             //  + 1 "B": "1", t = 10
-//        ASSERT_EQUAL(M.Clients("A"), clients[i]);
+        ASSERT_EQUAL(M.Clients("A"), clients[i]);
         ASSERT_EQUAL(M.Clients("B"), clients[i++]);
         M.Book(times[i], "A", 20000, 10);             //  +1 "A": "1" + "2", t = 2000
         M.Book(times[i], "A", 20000, 10);             //  == "A": "1" + "2", t = 2000
         M.Book(times[i], "B", 20000, 10);             //  +1 "B": "1" + "2", t = 2000
+//        cout << M.Clients("A") << "--" << clients[i] << endl;
         ASSERT_EQUAL(M.Clients("A"), clients[i]);
         ASSERT_EQUAL(M.Clients("B"), clients[i++]);
         M.Book(times[i], "A", 10000, 10);             //  == "A": "1" + "2", t = 30000
@@ -292,7 +262,6 @@ void TestGetClients() {
         ASSERT_EQUAL(M.Clients("C"), clients[i++]);
     }
 }
-
 void TestClients() {
     {
     BookingManager bm;
@@ -336,10 +305,9 @@ int main() {
     try {
 
 
-//    TestRunner tr;
-//    RUN_TEST(tr, TestClients);
-//    RUN_TEST(tr, TestGetRooms);
-
+//        TestRunner tr;
+//        RUN_TEST(tr, TestClients);
+//        RUN_TEST(tr, TestGetRooms);
 //        RUN_TEST(tr, TestGetClients);
 
     // Для ускорения чтения данных отключается синхронизация
