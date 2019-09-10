@@ -27,8 +27,7 @@ endif()
 add_executable(cpp_belts
 #        red_belt/w2/slow_book.cpp
 #        red_belt/w2/main.cpp
-        red_belt/w2/booking.cpp
-        )
+        red_belt/w3/sportsmen.cpp)
 
 #add_executable(cpp_belts main.cpp)
 
