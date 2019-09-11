@@ -24,10 +24,12 @@ if(MULTITHREADED_BUILD)
 endif()
 
 
+set(CMAKE_CXX_FLAGS "-O4 -Wall -Wextra")
+
 add_executable(cpp_belts
 #        red_belt/w2/slow_book.cpp
 #        red_belt/w2/main.cpp
-        red_belt/w3/sportsmen.cpp)
+        red_belt/w4/airport_counter.cpp)
 
 #add_executable(cpp_belts main.cpp)
 
