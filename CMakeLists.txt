@@ -24,7 +24,7 @@ if(MULTITHREADED_BUILD)
 endif()
 
 
-set(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "-O4 -Wall -Wextra")
 
 add_executable(cpp_belts
         red_belt/w5/group_heavy_strings.cpp
