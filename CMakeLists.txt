@@ -27,7 +27,8 @@ endif()
 set(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra")
 
 add_executable(cpp_belts
-        red_belt/w5/josephus_permutation.cpp)
+        red_belt/w5/group_heavy_strings.cpp
+       )
 
 #add_executable(cpp_belts main.cpp)
 

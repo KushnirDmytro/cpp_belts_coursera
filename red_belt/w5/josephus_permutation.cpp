@@ -69,7 +69,10 @@ void MakeJosephusPermutation(RandomIt first, RandomIt last, uint32_t step_size) 
         index_order[i] = (*live_els_it);  // remember for the answer
 //        cout << index_order << endl;
 
-        live_els_it = available_elements.erase(live_els_it);
+        const auto next_it = next(live_els_it);
+        available_elements.erase(live_els_it);
+        live_els_it = next_it;
+
 //        cout << available_elements << endl;
 
         size_t make_steps = step_size - 1;
@@ -86,7 +89,9 @@ void MakeJosephusPermutation(RandomIt first, RandomIt last, uint32_t step_size) 
         if(live_els_it == available_elements.end())
             live_els_it = available_elements.begin();
         index_order[i++] = (*live_els_it);
-        live_els_it = available_elements.erase(live_els_it);
+        const auto next_it = next(live_els_it);
+        available_elements.erase(live_els_it);
+        live_els_it = next_it;
         ++live_els_it;
     }
 
