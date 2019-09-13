@@ -27,7 +27,7 @@ endif()
 set(CMAKE_CXX_FLAGS "-O4 -Wall -Wextra")
 
 add_executable(cpp_belts
-        red_belt/w5/group_heavy_strings.cpp
+        red_belt/w5/simple_vector_2.cpp
        )
 
 #add_executable(cpp_belts main.cpp)
