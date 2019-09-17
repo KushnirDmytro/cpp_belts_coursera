@@ -27,7 +27,9 @@ endif()
 set(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra -pthread")
 
 add_executable(cpp_belts
-        red_belt/w5/concurrent_map.cpp
+        red_belt/w6/starter_files/main.cpp
+        red_belt/w6/starter_files/parse.cpp
+        red_belt/w6/starter_files/search_server.cpp
        )
 
 #add_executable(cpp_belts main.cpp)
