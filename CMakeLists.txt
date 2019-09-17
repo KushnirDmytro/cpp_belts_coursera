@@ -24,10 +24,10 @@ if(MULTITHREADED_BUILD)
 endif()
 
 
-set(CMAKE_CXX_FLAGS "-O4 -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra -pthread")
 
 add_executable(cpp_belts
-        red_belt/w5/simple_vector_2.cpp
+        red_belt/w5/explore_key_words.cpp
        )
 
 #add_executable(cpp_belts main.cpp)
