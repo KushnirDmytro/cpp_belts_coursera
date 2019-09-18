@@ -25,65 +25,126 @@ void SearchServer::UpdateDocumentBase(istream& document_input) {
   index = move(new_index);
 }
 
+
+
 void SearchServer::AddQueriesStream(
-  istream& query_input, ostream& search_results_output, AllDurations* all_durs
+        istream& query_input, ostream& search_results_output
+        , AllDurations* all_durs = nullptr
 ) {
 
 
-  for (string current_query; getline(query_input, current_query); ) {
-      // READING WORDS
-      vector<string> words;
-      {
-          ADD_DURATION(*all_durs->reading_time);
-          words = SplitIntoWords(current_query);
-      }
+    for (string current_query; getline(query_input, current_query); ) {
+        // READING WORDS
+        vector<string> words;
+        {
+            ADD_DURATION(*all_durs->reading_time);
+            words = SplitIntoWords(current_query);
+        }
 
 
-    // MAKING LOOKUP
-    map<size_t, size_t> docid_count;
-      {
-          ADD_DURATION(*all_durs->making_index_time);
-          for (const auto& word : words) {
-              for (const size_t docid : index.Lookup(word)) {
-                  docid_count[docid]++;
-              }
-          }
-      }
+        // MAKING LOOKUP
+//        map<size_t, size_t> docid_count;
 
-    vector<pair<size_t, size_t >> search_results(
-      docid_count.begin(), docid_count.end()
-    );
+//        vector<size_t> docid_count(index.GetNdocs());
 
-    // TOTAL SORTING
-      {
-          ADD_DURATION(*all_durs->sorting_time);
+//        docid_count.reserve(index.GetNdocs());
+//        {
+//            ADD_DURATION(*all_durs->making_index_time);
+//            for (const auto& word : words) {
+//                for (const size_t docid : index.Lookup(word)) {
+//                    docid_count[docid]++;
+//                }
+//            }
+//        }
+//        for (int i = 0; i < docid_count.size(); ++i){
+//            cout << i << ":" << docid_count[i] << endl;
+//        }
+//        cout << endl;
 
-          sort(
-                  begin(search_results),
-                  end(search_results),
-                  [](pair<size_t, size_t> lhs, pair<size_t, size_t> rhs) {
+//        vector<pair<size_t, size_t >> search_results{
+//            begin(docid_count), end(docid_count)
+//        };
+//        search_results.reserve(index.GetNdocs());
+//        for (size_t i{0}; i < index.GetNdocs(); ++i){
+//            search_results[i] = {docid_count[i], i};
+//        }
+
+
+//        cout << "Search results with map" << endl;
+
+//        cout << "Search results with map size " << search_results.size() << endl;
+//        cout << "Docid results with map size " << docid_count.size() << endl;
+//        cout << "NDOCS results with map size " << index.GetNdocs() << endl;
+//        for (const auto& [a, b]: search_results){
+//            cout << a << ":" << b << endl;
+//        } cout << endl;
+
+
+        vector<size_t> docid_count_vector(index.GetNdocs());
+
+        docid_count_vector.reserve(index.GetNdocs());
+        {
+            ADD_DURATION(*all_durs->making_index_time);
+            for (const auto& word : words) {
+                for (const size_t docid : index.Lookup(word)) {
+                    ++docid_count_vector[docid];
+                }
+            }
+        }
+//        for (int i = 0; i < docid_count_vector.size(); ++i){
+//            cout << i << ":" << docid_count_vector[i] << endl;
+//        }
+//        cout << endl;
+
+        vector<pair<size_t, size_t >> search_results;
+        search_results.reserve(index.GetNdocs());
+        for (size_t i{0}; i < index.GetNdocs(); ++i){
+            if (docid_count_vector[i])
+                search_results.emplace_back(i, docid_count_vector[i]);
+//            search_results[i] = {docid_count_vector[i], i};
+        }
+
+//        cout << "Search results with vector size " << search_results.size() << endl;
+//        cout << "Docid results with vector size " << docid_count_vector.size() << endl;
+//        cout << "NDOCS results with vector size " << index.GetNdocs() << endl;
+//        for (const auto& [a, b]: search_results){
+//            cout << a << ":" << b << endl;
+//        } cout << endl;
+
+//        vector<pair<size_t, size_t >> search_results(
+//                docid_count.begin(), docid_count.end()
+//        );
+
+        // TOTAL SORTING
+        {
+            ADD_DURATION(*all_durs->sorting_time);
+
+            sort(
+                    begin(search_results),
+                    end(search_results),
+                    [](pair<size_t, size_t> lhs, pair<size_t, size_t> rhs) {
 //          return lhs.second < rhs.second;
-                      int64_t lhs_docid = lhs.first;
-                      auto lhs_hit_count = lhs.second;
-                      int64_t rhs_docid = rhs.first;
-                      auto rhs_hit_count = rhs.second;
-                      return make_pair(lhs_hit_count, -lhs_docid) > make_pair(rhs_hit_count, -rhs_docid);
-                  }
-          );
-      }
+                        int64_t lhs_docid = lhs.first;
+                        auto lhs_hit_count = lhs.second;
+                        int64_t rhs_docid = rhs.first;
+                        auto rhs_hit_count = rhs.second;
+                        return make_pair(lhs_hit_count, -lhs_docid) > make_pair(rhs_hit_count, -rhs_docid);
+                    }
+            );
+        }
 
-    // Forming output
-      {
-          ADD_DURATION(*all_durs->printing_time);
-          search_results_output << current_query << ':';
-          for (auto[docid, hitcount] : Head(search_results, 5)) {
-              search_results_output << " {"
-                                    << "docid: " << docid << ", "
-                                    << "hitcount: " << hitcount << '}';
-          }
-          search_results_output << endl;
-      }
-  }
+        // Forming output
+        {
+            ADD_DURATION(*all_durs->printing_time);
+            search_results_output << current_query << ':';
+            for (auto[docid, hitcount] : Head(search_results, 5)) {
+                search_results_output << " {"
+                                      << "docid: " << docid << ", "
+                                      << "hitcount: " << hitcount << '}';
+            }
+            search_results_output << endl;
+        }
+    }
 }
 
 void InvertedIndex::Add(const string& document) {

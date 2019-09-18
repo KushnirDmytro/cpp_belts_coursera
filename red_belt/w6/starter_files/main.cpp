@@ -330,12 +330,12 @@ int main() {
 //        const auto words = SplitIntoWords(line);
 //    }
     TestRunner tr;
-//    RUN_TEST(tr, TestSerpFormat);
-//    RUN_TEST(tr, TestTop5);
-//    RUN_TEST(tr, TestHitcount);
-//    RUN_TEST(tr, TestRanking);
-//    RUN_TEST(tr, TestBasicSearch);
-//    RUN_TEST(tr, TestBasicLongSearch);
+    RUN_TEST(tr, TestSerpFormat);
+    RUN_TEST(tr, TestTop5);
+    RUN_TEST(tr, TestHitcount);
+    RUN_TEST(tr, TestRanking);
+    RUN_TEST(tr, TestBasicSearch);
+    RUN_TEST(tr, TestBasicLongSearch);
 //    delete all_durations;
     delete read;
     delete indexing;

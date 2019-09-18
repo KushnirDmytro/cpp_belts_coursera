@@ -22,7 +22,8 @@ public:
     return docs[id];
   }
 
-private:
+  size_t GetNdocs() const { return docs.size();}
+private:  // size of n_documents
   map<string, list<size_t>> index;
   vector<string> docs;
 };
@@ -33,6 +34,7 @@ public:
   explicit SearchServer(istream& document_input);
   void UpdateDocumentBase(istream& document_input);
   void AddQueriesStream(istream& query_input, ostream& search_results_output, AllDurations* all_durs);
+//  void AddQueriesStream(istream& query_input, ostream& search_results_output);
 
 private:
   InvertedIndex index;
