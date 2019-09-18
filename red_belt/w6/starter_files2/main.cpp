@@ -26,7 +26,11 @@ void TestFunctionality(
   ostringstream queries_output;
   srv.AddQueriesStream(queries_input, queries_output);
 
+//  this_thread::sleep_for(0.20s);
+
   const string result = queries_output.str();
+
+//  cout << " RESULT : [" << result.size() << "]" << result << endl;
   const auto lines = SplitBy(Strip(result), '\n');
   ASSERT_EQUAL(lines.size(), expected.size());
   for (size_t i = 0; i < lines.size(); ++i) {
@@ -201,7 +205,6 @@ void TestBasicSearch() {
 }
 
 int main() {
-
   TestRunner tr;
   RUN_TEST(tr, TestSerpFormat);
   RUN_TEST(tr, TestTop5);

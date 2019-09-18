@@ -22,7 +22,8 @@ int64_t CalculateMatrixSum(const vector<vector<int>>& matrix) {
     vector<future<int64_t>>vec_res;
     auto it = matrix.begin();
     for(size_t n_thread{0}; n_thread < N_threads; ++n_thread, it += partition_size){
-        vec_res.push_back(async ([it, partition_size, N_threads, n_thread, &matrix]{ return SumVectors(it, n_thread == N_threads - 1 ? matrix.end(): it + partition_size); }));
+        vec_res.push_back(async (
+                [it, partition_size, N_threads, n_thread, &matrix]{ return SumVectors(it, n_thread == N_threads - 1 ? matrix.end(): it + partition_size); }));
     }
     int64_t  total_sum{0};
     for (auto &call : vec_res)
