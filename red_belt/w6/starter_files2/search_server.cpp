@@ -12,7 +12,7 @@ vector<string> SplitIntoWords(const string& line) {
 }
 
 SearchServer::SearchServer(istream& document_input) {
-  UpdateDocumentBaseAsync(document_input);
+    UpdateDocumentBaseAsync(document_input);
 }
 
 void SearchServer::UpdateDocumentBaseAsync(istream& document_input) {
@@ -21,10 +21,7 @@ void SearchServer::UpdateDocumentBaseAsync(istream& document_input) {
     new_index.Add(move(current_document));
   }
 
-  sync_index.GetAccess().ref_to_value = move(new_index);
-//  index = move(new_index);
-
-//    cout << "Async update documents update finished" << endl;
+  swap(sync_index.GetAccess().ref_to_value , new_index);
 }
 
 
@@ -37,11 +34,10 @@ void SearchServer::UpdateDocumentBlocking(istream& document_input) {
     }
 
     acc.ref_to_value = move(new_index);
-
-//    cout << "Sync update documents update finished" << endl;
 }
 
 void SearchServer::UpdateDocumentBase(istream& document_input){
+
 //    if (sync_index.GetAccess().ref_to_value.docs.empty()) {
 //        auto acc = sync_index.GetAccess();
 //        InvertedIndex new_index;
@@ -49,30 +45,20 @@ void SearchServer::UpdateDocumentBase(istream& document_input){
 //            new_index.Add(move(current_document));
 //        }
 //        acc.ref_to_value = move(new_index);
-
-//        async_calls.push_back(
-//                async(
-//                        launch::async,
-//                        &SearchServer::UpdateDocumentBlocking,
-//                        this,
-//                        ref(document_input)
-//                )
-//        );
-//    } else {
-//        async_calls.push_back(
-//                async(
-//                        launch::async,
-//                        &SearchServer::UpdateDocumentBaseAsync,
-//                        this,
-//                        ref(document_input)
-//                )
-//        );
+//    }
+//    else {
+        async_calls.push_back(
+                async(
+                        launch::async,
+                        &SearchServer::UpdateDocumentBaseAsync,
+                        this,
+                        ref(document_input)
+                )
+        );
 //    }
 }
 
 void SearchServer::AddQueriesStream(istream &query_input, ostream &search_results_output){
-//    this_thread::sleep_for(chrono::microseconds(1000000));
-//    AddQueriesStreamAsync(query_input, search_results_output);
     async_calls.push_back(
             async(
                     launch::async,
@@ -81,26 +67,25 @@ void SearchServer::AddQueriesStream(istream &query_input, ostream &search_result
                     ref(query_input),
                     ref(search_results_output))
             );
-
 }
 
 void SearchServer::AddQueriesStreamAsync(istream &query_input, ostream &search_results_output) {
-//    this_thread::sleep_for(chrono::microseconds(1000));
-//    cout << "Async  query processing started :" << sync_index.GetAccess().ref_to_value.docs.size() << endl;
+
     vector<pair<size_t, int64_t >> search_results;
     pair<size_t, int64_t > p = {0u, 0};
-    search_results.reserve(sync_index.GetAccess().ref_to_value.docs.size());
+
+    size_t WordsNumberInDocs = sync_index.GetAccess().ref_to_value.docs.size();
+    search_results.reserve(WordsNumberInDocs);
 
     for (string current_query; getline(query_input, current_query); ) {
-
     const auto words = SplitIntoWords(current_query);
 
-      search_results.assign(sync_index.GetAccess().ref_to_value.docs.size(), p);
+      search_results.assign(WordsNumberInDocs, p);
     for (const auto& word : words) {
-      for (const auto &[docid, docid_count] : sync_index.GetAccess().ref_to_value.Lookup(word)) {
-          search_results[docid].first += docid_count;
-          search_results[docid].second = -docid;
-      }
+            for (const auto &[docid, docid_count] :  sync_index.GetAccess().ref_to_value.Lookup(word)) {
+                search_results[docid].first += docid_count;
+                search_results[docid].second = -docid;
+            }
     }
 
 //    search_results.erase(
@@ -129,34 +114,44 @@ void SearchServer::AddQueriesStreamAsync(istream &query_input, ostream &search_r
     search_results_output << endl;
   }
 
-//    cout << "Async  query processing finished :" << sync_index.GetAccess().ref_to_value.docs.size() << endl;
-
 }
 
-void InvertedIndex::Add(const string& document) {
+void InvertedIndex::Add( const string &document) {
   docs.push_back(document);
 
   const size_t docid = docs.size() - 1;
 
-  for (const auto& word : SplitIntoWords(document)) {
-//      size_t old_id_in_docindex = index[word][docid]++;
-      if (index[word].find(docid) == index[word].end()) {
-          index[word][docid] = word_to_ready_result[word].size();  //new position of a word
-          word_to_ready_result[word].emplace_back(docid, 1);
+    for (const auto& word : SplitIntoWords(document)) {
+       auto it_on_word_in_map = index.find(word);
+
+        map<string, vector <pair <size_t, size_t > >>::iterator vec_iter;
+
+        if (it_on_word_in_map == index.end()){ // nullptr case
+           auto iter_on_new_element = index.insert({word,{}});
+           it_on_word_in_map = iter_on_new_element.first;
+            vec_iter = word_to_ready_result.insert({word, {}}).first;
+
+       } else {
+            vec_iter = word_to_ready_result.find(word);
+       }
+
+      if (auto it = it_on_word_in_map->second.find(docid); it == it_on_word_in_map->second.end()) {
+          it_on_word_in_map->second[docid] = vec_iter->second.size();  //new position of a word
+          vec_iter->second.emplace_back(docid, 1);
       } else  {
-          ++word_to_ready_result[word][index[word][docid]].second;
+          ++(vec_iter->second)[it->second].second;
       }
-//    .push_back(docid);
 
   }
 }
 
 
 // has to return vector of ready pairs
-vector<pair<size_t , size_t>> InvertedIndex::Lookup(const string& word) const {
+const vector<pair<size_t , size_t>>& InvertedIndex::Lookup(const string& word) const {
+    static const vector<pair<size_t , size_t>> empty;
   if (auto it = word_to_ready_result.find(word); it != word_to_ready_result.end()) {
       return it->second;
   } else {
-    return {};
+    return empty;
   }
 }

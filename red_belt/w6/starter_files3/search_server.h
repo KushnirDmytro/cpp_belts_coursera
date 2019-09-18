@@ -10,8 +10,6 @@
 #include <mutex>
 #include <future>
 #include <deque>
-#include <iostream>
-
 using namespace std;
 
 template <typename T>
@@ -28,14 +26,14 @@ public:
                 lock(mt),
                 ref_to_value {ref_to}
         {
-        }
 
+        }
         lock_guard<mutex> lock;
         T& ref_to_value;
     };
 
     Access GetAccess(){
-        return {value, mt_};
+        return Access(value, mt_);
     }
 private:
     mutex mt_;
@@ -44,22 +42,18 @@ private:
 
 class InvertedIndex {
 public:
-  void Add( const string &document);
+  void Add(const string &document);
   const vector<pair<size_t , size_t >>& Lookup(const string& word) const;
 
-    InvertedIndex() = default;
-//    explicit InvertedIndex(istream& document_input);
+//  const vector<string>& GetDocuments() const {
+//      return docs;
+//  }
 
-  const string& GetDocument(size_t id) const {
-    return docs[id];
-  }
     vector<string> docs;
-    map<string, map<size_t, size_t >> index;  // word to document ID
-
-
 private:
-  map<string, vector<pair<size_t, size_t >>> word_to_ready_result;
-    friend class SearchServer;
+    map<string, map<size_t, size_t >> index;  // word to document ID
+  map<string, vector<pair<size_t, size_t >> > word_to_ready_result;
+
 };
 
 class SearchServer {
@@ -72,7 +66,6 @@ public:
 private:
     void AddQueriesStreamAsync(istream& query_input, ostream& search_results_output);
     void UpdateDocumentBaseAsync(istream& document_input);
-    void UpdateDocumentBlocking(istream& document_input);
     Synchronized<InvertedIndex> sync_index;
   deque<future<void>> async_calls;
 };

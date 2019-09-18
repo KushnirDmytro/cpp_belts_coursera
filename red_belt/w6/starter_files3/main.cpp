@@ -22,17 +22,19 @@ void TestFunctionality(
   istringstream docs_input2(Join('\n', docs));
   istringstream queries_input(Join('\n', queries));
 
+
   SearchServer srv(docs_input);
   srv.UpdateDocumentBase(docs_input2);
-//  srv.UpdateDocumentBase(docs_input);
+
+//    this_thread::sleep_for(0.40s);
+
+//    this_thread::sleep_for(0.4s);
   ostringstream queries_output;
   srv.AddQueriesStream(queries_input, queries_output);
 
-  this_thread::sleep_for(0.20s);
+    this_thread::sleep_for(0.1s);
 
   const string result = queries_output.str();
-
-//  cout << " RESULT : [" << result.size() << "]" << result << endl;
   const auto lines = SplitBy(Strip(result), '\n');
   ASSERT_EQUAL(lines.size(), expected.size());
   for (size_t i = 0; i < lines.size(); ++i) {
@@ -208,10 +210,9 @@ void TestBasicSearch() {
 
 int main() {
   TestRunner tr;
-
-    RUN_TEST(tr, TestSerpFormat);
-    RUN_TEST(tr, TestRanking);
-    RUN_TEST(tr, TestHitcount);
-    RUN_TEST(tr, TestTop5);
+  RUN_TEST(tr, TestSerpFormat);
+  RUN_TEST(tr, TestTop5);
+  RUN_TEST(tr, TestHitcount);
+  RUN_TEST(tr, TestRanking);
   RUN_TEST(tr, TestBasicSearch);
 }

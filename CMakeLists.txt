@@ -30,10 +30,19 @@ add_executable(cpp_belts
 #        Red-belt-cpp-master/33_search_engine/main.cpp
 #        Red-belt-cpp-master/33_search_engine/parse.cpp
 #        Red-belt-cpp-master/33_search_engine/search_server.cpp
-#
-        red_belt/w6/starter_files2/main.cpp
-        red_belt/w6/starter_files2/parse.cpp
-        red_belt/w6/starter_files2/search_server.cpp
+
+#        red_belt/w6/starter_files2/main.cpp
+#        red_belt/w6/starter_files2/parse.cpp
+#        red_belt/w6/starter_files2/search_server.cpp
+
+        red_belt/w6/starter_files3/main.cpp
+        red_belt/w6/starter_files3/parse.cpp
+        red_belt/w6/starter_files3/search_server.cpp
+
+#        red_belt/w6/correct2/main.cpp
+#        red_belt/w6/correct2/parse.cpp
+#        red_belt/w6/correct2/search_server.cpp
+#        red_belt/w6/correct2/profile_advanced.cpp
 #        red_belt/w6/starter_files2/total_duration.h
         )
 
