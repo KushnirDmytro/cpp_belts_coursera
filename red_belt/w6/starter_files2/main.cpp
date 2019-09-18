@@ -11,20 +11,7 @@
 #include <fstream>
 #include <random>
 #include <thread>
-
-#include "total_duration.h"
-#include "profile.h"
-
 using namespace std;
-
-
-TotalDuration* read;
-TotalDuration* parse;
-TotalDuration* print;
-TotalDuration* indexing;
-TotalDuration* sorting;
-AllDurations* all_durations;
-
 
 void TestFunctionality(
   const vector<string>& docs,
@@ -37,9 +24,7 @@ void TestFunctionality(
   SearchServer srv;
   srv.UpdateDocumentBase(docs_input);
   ostringstream queries_output;
-  srv.AddQueriesStream(queries_input, queries_output
-//          , all_durations
-          );
+  srv.AddQueriesStream(queries_input, queries_output);
 
   const string result = queries_output.str();
   const auto lines = SplitBy(Strip(result), '\n');
@@ -48,29 +33,6 @@ void TestFunctionality(
     ASSERT_EQUAL(lines[i], expected[i]);
   }
 }
-
-void TestTime(
-        const vector<string>& docs,
-        const vector<string>& queries
-) {
-    istringstream docs_input(Join('\n', docs));
-    istringstream queries_input(Join('\n', queries));
-
-    SearchServer srv;
-    srv.UpdateDocumentBase(docs_input);
-    ostringstream queries_output;
-    srv.AddQueriesStream(queries_input, queries_output
-//            , all_durations
-            );
-
-    const string result = queries_output.str();
-    const auto lines = SplitBy(Strip(result), '\n');
-//    ASSERT_EQUAL(lines.size(), expected.size());
-//    for (size_t i = 0; i < lines.size(); ++i) {
-//        ASSERT_EQUAL(lines[i], expected[i]);
-//    }
-}
-
 
 void TestSerpFormat() {
   const vector<string> docs = {
@@ -155,7 +117,6 @@ void TestHitcount() {
   TestFunctionality(docs, queries, expected);
 }
 
-
 void TestRanking() {
   const vector<string> docs = {
     "london is the capital of great britain",
@@ -239,120 +200,11 @@ void TestBasicSearch() {
   TestFunctionality(docs, queries, expected);
 }
 
-void TestBasicLongSearch() {
-    const vector<string> docs = {
-            "we are ready to go",
-            "come on everybody shake you hands",
-            "i love this game",
-            "just like exception safety is not about writing try catch everywhere in your code move semantics are not about typing double ampersand everywhere in your code",
-            "daddy daddy daddy dad dad dad",
-            "tell me the meaning of being lonely",
-            "just keep track of it",
-            "how hard could it be",
-            "it is going to be legen wait for it dary legendary",
-            "we dont need no education",
-
-            "london is the capital of great britain",
-            "paris is the capital of france",
-            "berlin is the capital of germany",
-            "rome is the capital of italy",
-            "madrid is the capital of spain",
-            "lisboa is the capital of portugal",
-            "bern is the capital of switzerland",
-            "moscow is the capital of russia",
-            "kiev is the capital of ukraine",
-            "minsk is the capital of belarus",
-            "astana is the capital of kazakhstan",
-            "beijing is the capital of china",
-            "tokyo is the capital of japan",
-            "bangkok is the capital of thailand",
-            "welcome to moscow the capital of russia the third rome",
-            "amsterdam is the capital of netherlands",
-            "helsinki is the capital of finland",
-            "oslo is the capital of norway",
-            "stockgolm is the capital of sweden",
-            "riga is the capital of latvia",
-            "tallin is the capital of estonia",
-            "warsaw is the capital of poland"
-    };
-    vector<string> long_docs;
-    for (size_t i{0}; i < 1000; ++i){
-        copy(docs.begin(), docs.end(), back_inserter(long_docs));
-    }
-
-    const vector<string> queries = {
-            "we need some help",
-            "it",
-            "i love this game",
-            "tell me why",
-            "dislike",
-            "about"
-    };
-    vector<string> long_queries;
-    for (size_t i{0}; i < 1000; ++i){
-        copy(queries.begin(), queries.end(), back_inserter(long_queries));
-    }
-
-    const vector<string> expected = {
-            Join(' ', vector{
-                    "we need some help:",
-                    "{docid: 9, hitcount: 2}",
-                    "{docid: 0, hitcount: 1}"
-            }),
-            Join(' ', vector{
-                    "it:",
-                    "{docid: 8, hitcount: 2}",
-                    "{docid: 6, hitcount: 1}",
-                    "{docid: 7, hitcount: 1}",
-            }),
-            "i love this game: {docid: 2, hitcount: 4}",
-            "tell me why: {docid: 5, hitcount: 2}",
-            "dislike:",
-            "about: {docid: 3, hitcount: 2}",
-    };
-    TestTime(long_docs, long_queries);
-}
-
-istream& ReadLine(istream& input, string& s, TotalDuration& dest) {
-    ADD_DURATION(dest);
-    return getline(input, s);
-}
-
 int main() {
-//    read = new TotalDuration("Total read");
-//     parse = new TotalDuration("Total parse");
-//     print = new TotalDuration("Printing time");
-//    indexing = new TotalDuration ("indexing time");
-//     sorting = new TotalDuration("sorting time");
-//     all_durations = new AllDurations{
-//             read, indexing, sorting, print
-//     };
-
-
-//    for (string line; ReadLine(cin, line, read); ) {
-//        ADD_DURATION(parse);
-//        const auto words = SplitIntoWords(line);
-//    }
-    TestRunner tr;
-    RUN_TEST(tr, TestSerpFormat);
-    RUN_TEST(tr, TestTop5);
-    RUN_TEST(tr, TestHitcount);
-    RUN_TEST(tr, TestRanking);
-    RUN_TEST(tr, TestBasicSearch);
-//    RUN_TEST(tr, TestBasicLongSearch);
-//    delete all_durations;
-//    delete read;
-//    delete indexing;
-//    delete print;
-//    delete sorting;
-
+  TestRunner tr;
+  RUN_TEST(tr, TestSerpFormat);
+  RUN_TEST(tr, TestTop5);
+  RUN_TEST(tr, TestHitcount);
+  RUN_TEST(tr, TestRanking);
+  RUN_TEST(tr, TestBasicSearch);
 }
-
-//int main() {
-//  TestRunner tr;
-//  RUN_TEST(tr, TestSerpFormat);
-//  RUN_TEST(tr, TestTop5);
-//  RUN_TEST(tr, TestHitcount);
-//  RUN_TEST(tr, TestRanking);
-//  RUN_TEST(tr, TestBasicSearch);
-//}

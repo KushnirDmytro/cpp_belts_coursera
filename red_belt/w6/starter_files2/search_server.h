@@ -7,11 +7,7 @@
 #include <vector>
 #include <map>
 #include <string>
-
-#include "total_duration.h"
 using namespace std;
-
-vector<string> SplitIntoWords(const string& line);
 
 class InvertedIndex {
 public:
@@ -22,8 +18,7 @@ public:
     return docs[id];
   }
 
-  size_t GetNdocs() const { return docs.size();}
-private:  // size of n_documents
+private:
   map<string, list<size_t>> index;
   vector<string> docs;
 };
@@ -33,10 +28,7 @@ public:
   SearchServer() = default;
   explicit SearchServer(istream& document_input);
   void UpdateDocumentBase(istream& document_input);
-  void AddQueriesStream(istream& query_input, ostream& search_results_output
-//          , AllDurations* all_durs
-          );
-//  void AddQueriesStream(istream& query_input, ostream& search_results_output);
+  void AddQueriesStream(istream& query_input, ostream& search_results_output);
 
 private:
   InvertedIndex index;

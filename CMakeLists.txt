@@ -27,10 +27,11 @@ endif()
 set(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra -pthread")
 
 add_executable(cpp_belts
-        red_belt/w6/starter_files/main.cpp
-        red_belt/w6/starter_files/parse.cpp
-        red_belt/w6/starter_files/search_server.cpp
-        red_belt/w6/starter_files/total_duration.h)
+        red_belt/w6/starter_files2/main.cpp
+        red_belt/w6/starter_files2/parse.cpp
+        red_belt/w6/starter_files2/search_server.cpp
+#        red_belt/w6/starter_files2/total_duration.h
+        )
 
 #add_executable(cpp_belts main.cpp)
 
