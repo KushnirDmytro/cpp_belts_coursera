@@ -12,15 +12,17 @@ using namespace std;
 class InvertedIndex {
 public:
   void Add(const string& document);
-  list<size_t> Lookup(const string& word) const;
+  vector<pair<size_t , size_t >> Lookup(const string& word) const;
 
   const string& GetDocument(size_t id) const {
     return docs[id];
   }
+    vector<string> docs;
 
+    map<string, map<size_t, size_t >> index;  // word to document ID
 private:
-  map<string, list<size_t>> index;
-  vector<string> docs;
+  map<string, vector<pair<size_t, size_t >> > word_to_ready_result;
+
 };
 
 class SearchServer {
