@@ -7,7 +7,11 @@
 #include <vector>
 #include <map>
 #include <string>
+
+#include "total_duration.h"
 using namespace std;
+
+vector<string> SplitIntoWords(const string& line);
 
 class InvertedIndex {
 public:
@@ -28,7 +32,7 @@ public:
   SearchServer() = default;
   explicit SearchServer(istream& document_input);
   void UpdateDocumentBase(istream& document_input);
-  void AddQueriesStream(istream& query_input, ostream& search_results_output);
+  void AddQueriesStream(istream& query_input, ostream& search_results_output, AllDurations* all_durs);
 
 private:
   InvertedIndex index;

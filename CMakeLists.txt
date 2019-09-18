@@ -30,7 +30,7 @@ add_executable(cpp_belts
         red_belt/w6/starter_files/main.cpp
         red_belt/w6/starter_files/parse.cpp
         red_belt/w6/starter_files/search_server.cpp
-       )
+        red_belt/w6/starter_files/total_duration.h)
 
 #add_executable(cpp_belts main.cpp)
 
