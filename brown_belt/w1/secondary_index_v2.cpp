@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <list>
 
 using namespace std;
 
@@ -13,6 +14,8 @@ struct Record {
   string user;
   int timestamp;
   int karma;
+
+  bool operator==(const Record &other){ return id == other.id; };
 };
 
 // Реализуйте этот класс
@@ -20,6 +23,7 @@ class Database {
 public:
   bool Put(const Record& record);
   const Record* GetById(const string& id) const;
+  Record* GetByIdMutable(const string& id);
   bool Erase(const string& id);
 
   template <typename Callback>
@@ -30,7 +34,98 @@ public:
 
   template <typename Callback>
   void AllByUser(const string& user, Callback callback) const;
+
+private:
+    template <typename MMT>
+    void EraseMMap(multimap<MMT, Record*> &mmap, pair<MMT, Record*> p);
+    using IdIndex = unordered_map<string_view , Record* > ;
+    IdIndex idIndex_;
+    using TimestampIndex = multimap<int, Record*>;
+    TimestampIndex tsIndex_;
+    using KarmaIndex = multimap<int, Record*>;
+    KarmaIndex karmaIndex_;
+    using UserIndex = multimap<string_view, Record*>;
+    UserIndex userIndex_;
+
 };
+
+const Record *Database::GetById(const string &id) const {
+    static const Record *no_element{nullptr};
+    auto iter_to_element = idIndex_.find(id);
+    if (iter_to_element == idIndex_.end())
+        return no_element;
+    else
+        return iter_to_element->second;
+}
+
+Record *Database::GetByIdMutable(const string &id) {
+    static Record *no_element{nullptr};
+    auto iter_to_element = idIndex_.find(id);
+    if (iter_to_element == idIndex_.end())
+        return no_element;
+    else
+        return iter_to_element->second;
+}
+
+bool Database::Put(const Record &record) {
+    const Record* el_by_iter = GetById(record.id);
+    if (el_by_iter){
+        return false;
+    } else {
+        auto pair = idIndex_.insert({record.id, new Record(record)});
+        tsIndex_.insert( {record.timestamp,pair.first->second});
+        karmaIndex_.insert( {record.karma,pair.first->second});
+        userIndex_.insert( {record.user,pair.first->second});
+        return true;
+    }
+}
+
+bool Database::Erase(const string &id) {
+    Record* el_ptr = GetByIdMutable(id);
+    if (el_ptr){
+        EraseMMap<int>(karmaIndex_,  {el_ptr->karma, el_ptr});
+        EraseMMap<int>(tsIndex_,  {el_ptr->timestamp, el_ptr});
+        EraseMMap<string_view >(userIndex_,  {el_ptr->user, el_ptr});
+        delete el_ptr;
+        idIndex_.erase(id);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+template<typename MMT>
+void Database::EraseMMap(multimap<MMT, Record *> &mmap, pair<MMT, Record *> p) {
+    auto eq_range = mmap.equal_range(p.first);
+    auto it = eq_range.first;
+    while(it != eq_range.second){
+        if (it->second == p.second){
+            mmap.erase(it);
+            return;
+        }
+    }
+}
+
+template<typename Callback>
+void Database::AllByUser(const string &user, Callback callback) const {
+    auto range = userIndex_.equal_range(user);
+    for (auto &it = range.first; it != range.second && callback(*it->second); ++it){}
+}
+
+template<typename Callback>
+void Database::RangeByKarma(int low, int high, Callback callback) const {
+    auto ramge_top = karmaIndex_.upper_bound(high);
+    for (auto it = karmaIndex_.lower_bound(low);
+    it != ramge_top && callback(*it->second); ++it){}
+}
+
+template<typename Callback>
+void Database::RangeByTimestamp(int low, int high, Callback callback) const {
+    auto ramge_top = tsIndex_.upper_bound(high);
+    for (auto it = tsIndex_.lower_bound(low);
+         it != ramge_top && callback(*it->second); ++it){}
+}
+
 
 void TestRangeBoundaries() {
   const int good_karma = 1000;
