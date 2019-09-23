@@ -15,7 +15,10 @@ struct Record {
   int timestamp;
   int karma;
 
-  bool operator==(const Record &other){ return id == other.id; };
+  bool operator==(const Record &other){ return
+  timestamp == other.timestamp &&
+  karma == other.karma && id == other.id; };
+
 };
 
 // Реализуйте этот класс
@@ -44,7 +47,7 @@ private:
     TimestampIndex tsIndex_;
     using KarmaIndex = multimap<int, Record*>;
     KarmaIndex karmaIndex_;
-    using UserIndex = multimap<string_view, Record*>;
+    using UserIndex = unordered_multimap<string_view, Record*>;
     UserIndex userIndex_;
 
 };
@@ -72,10 +75,10 @@ bool Database::Put(const Record &record) {
     if (el_by_iter){
         return false;
     } else {
-        auto pair = idIndex_.insert({record.id, new Record(record)});
-        tsIndex_.insert( {record.timestamp,pair.first->second});
-        karmaIndex_.insert( {record.karma,pair.first->second});
-        userIndex_.insert( {record.user,pair.first->second});
+        auto pair = idIndex_.emplace(record.id, new Record(record));
+        tsIndex_.emplace( record.timestamp,pair.first->second);
+        karmaIndex_.emplace( record.karma,pair.first->second);
+        userIndex_.emplace( record.user,pair.first->second);
         return true;
     }
 }
@@ -85,7 +88,15 @@ bool Database::Erase(const string &id) {
     if (el_ptr){
         EraseMMap<int>(karmaIndex_,  {el_ptr->karma, el_ptr});
         EraseMMap<int>(tsIndex_,  {el_ptr->timestamp, el_ptr});
-        EraseMMap<string_view >(userIndex_,  {el_ptr->user, el_ptr});
+
+        auto user_range = userIndex_.equal_range(el_ptr->user);
+        for (auto &el = user_range.first; el != user_range.second; ++el){
+            if (el->second == el_ptr){
+                userIndex_.erase(el);
+                break;
+            }
+        }
+//        EraseMMap<string_view >(userIndex_,  {el_ptr->user, el_ptr});
         delete el_ptr;
         idIndex_.erase(id);
         return true;
