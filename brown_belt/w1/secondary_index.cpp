@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <list>
+#include <memory>
 
 using namespace std;
 
@@ -26,7 +27,8 @@ class Database {
 public:
   bool Put(const Record& record);
   const Record* GetById(const string& id) const;
-  Record* GetByIdMutable(const string& id);
+//  Record* GetRecord(const string& id);
+
   bool Erase(const string& id);
 
   template <typename Callback>
@@ -39,17 +41,22 @@ public:
   void AllByUser(const string& user, Callback callback) const;
 
 private:
-    template <typename MMT>
-    void EraseMMap(multimap<MMT, Record*> &mmap, pair<MMT, Record*> p);
-    using IdIndex = unordered_map<string_view , Record* > ;
-    IdIndex idIndex_;
+
     using TimestampIndex = multimap<int, Record*>;
     TimestampIndex tsIndex_;
     using KarmaIndex = multimap<int, Record*>;
     KarmaIndex karmaIndex_;
-    using UserIndex = unordered_multimap<string_view, Record*>;
+    using UserIndex = multimap<string_view, Record*>;
     UserIndex userIndex_;
+    struct Storage{
+        Record rec_;
+        TimestampIndex::iterator ts_it_;
+        KarmaIndex::iterator kr_it_;
+        UserIndex::iterator user_it_;
+    };
+    unordered_map<string_view , Storage> idIndex_;
 
+    Storage *GetStorage(const string &id);
 };
 
 const Record *Database::GetById(const string &id) const {
@@ -58,46 +65,40 @@ const Record *Database::GetById(const string &id) const {
     if (iter_to_element == idIndex_.end())
         return no_element;
     else
-        return iter_to_element->second;
+        return &iter_to_element->second.rec_;
 }
 
-Record *Database::GetByIdMutable(const string &id) {
-    static Record *no_element{nullptr};
+Database::Storage *Database::GetStorage(const string &id) {
+    static Storage *no_element{nullptr};
     auto iter_to_element = idIndex_.find(id);
     if (iter_to_element == idIndex_.end())
         return no_element;
     else
-        return iter_to_element->second;
+        return &iter_to_element->second;
 }
 
 bool Database::Put(const Record &record) {
-    const Record* el_by_iter = GetById(record.id);
-    if (el_by_iter){
+
+    auto new_storage_iter = idIndex_.insert({record.id,
+                                             Storage{record, {}, {}, {}}});
+    if (!new_storage_iter.second){
         return false;
     } else {
-        auto pair = idIndex_.emplace(record.id, new Record(record));
-        tsIndex_.emplace( record.timestamp,pair.first->second);
-        karmaIndex_.emplace( record.karma,pair.first->second);
-        userIndex_.emplace( record.user,pair.first->second);
+        Storage& new_storage = new_storage_iter.first->second;
+        new_storage.kr_it_ =  karmaIndex_.emplace( new_storage.rec_.karma , &new_storage.rec_);
+        new_storage.ts_it_ =  tsIndex_.emplace( new_storage.rec_.timestamp , &new_storage.rec_);
+        new_storage.user_it_ =  userIndex_.emplace( new_storage.rec_.user , &new_storage.rec_);
         return true;
     }
+
 }
 
 bool Database::Erase(const string &id) {
-    Record* el_ptr = GetByIdMutable(id);
+    Storage* el_ptr = GetStorage(id);
     if (el_ptr){
-        EraseMMap<int>(karmaIndex_,  {el_ptr->karma, el_ptr});
-        EraseMMap<int>(tsIndex_,  {el_ptr->timestamp, el_ptr});
-
-        auto user_range = userIndex_.equal_range(el_ptr->user);
-        for (auto &el = user_range.first; el != user_range.second; ++el){
-            if (el->second == el_ptr){
-                userIndex_.erase(el);
-                break;
-            }
-        }
-//        EraseMMap<string_view >(userIndex_,  {el_ptr->user, el_ptr});
-        delete el_ptr;
+        karmaIndex_.erase(el_ptr->kr_it_);
+        tsIndex_.erase(el_ptr->ts_it_);
+        userIndex_.erase(el_ptr->user_it_);
         idIndex_.erase(id);
         return true;
     } else {
@@ -105,17 +106,6 @@ bool Database::Erase(const string &id) {
     }
 }
 
-template<typename MMT>
-void Database::EraseMMap(multimap<MMT, Record *> &mmap, pair<MMT, Record *> p) {
-    auto eq_range = mmap.equal_range(p.first);
-    auto it = eq_range.first;
-    while(it != eq_range.second){
-        if (it->second == p.second){
-            mmap.erase(it);
-            return;
-        }
-    }
-}
 
 template<typename Callback>
 void Database::AllByUser(const string &user, Callback callback) const {
