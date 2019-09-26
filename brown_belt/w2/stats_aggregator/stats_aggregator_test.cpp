@@ -4,14 +4,15 @@
 #include <sstream>
 using namespace std;
 
-string PrintedValue(const StatsAggregator& aggr) {
-    ostringstream output;
-    aggr.PrintValue(output);
-    return output.str();
-}
+
 
 
 namespace StatsAggregators{
+    string PrintedValue(const StatsAggregator& aggr) {
+        ostringstream output;
+        aggr.PrintValue(output);
+        return output.str();
+    }
 
     void TestSum() {
         Sum aggr;

@@ -7,17 +7,18 @@
 #include <optional>
 #include <unordered_map>
 
-    struct StatsAggregator {
-  virtual ~StatsAggregator() {
-  }
-
-  virtual void Process(int value) = 0;
-  virtual void PrintValue(std::ostream& out) const = 0;
-};
-
 namespace StatsAggregators{
 
-class Sum : public StatsAggregator {
+    struct StatsAggregator {
+        virtual ~StatsAggregator() {
+        }
+
+        virtual void Process(int value) = 0;
+        virtual void PrintValue(std::ostream& out) const = 0;
+    };
+
+
+    class Sum : public StatsAggregator {
 public:
   void Process(int value) override;
   void PrintValue(std::ostream& out) const override;
