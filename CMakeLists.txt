@@ -27,7 +27,7 @@ endif()
 set(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra -pthread")
 
 add_executable(cpp_belts
-        brown_belt/w2/print_stats/print_stats_2.cpp
+        brown_belt/w3/zoo/zoo.cpp
         )
 target_include_directories(cpp_belts PRIVATE common_headers)
 
