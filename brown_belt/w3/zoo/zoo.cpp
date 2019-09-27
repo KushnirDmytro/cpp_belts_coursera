@@ -6,10 +6,29 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <memory>
 
 using namespace std;
 
-using Zoo = vector<Animal>;
+using Zoo = vector<unique_ptr<Animal>>;
+
+enum class Animals{
+    Tiger,
+    Wolf,
+    Fox,
+    UnknownAnimal
+};
+
+Animals GetAnimalType(const string &name){
+    static const map<string, Animals> animals_{
+            {"Tiger", Animals ::Tiger},
+            {"Wolf", Animals ::Wolf},
+            {"Fox", Animals ::Fox},
+            {"UnknownAnimal", Animals ::UnknownAnimal},
+    };
+    const auto& it = animals_.find(name);
+    return (it == animals_.end()) ? Animals::UnknownAnimal : it->second;
+}
 
 // Эта функция получает на вход поток ввода и читает из него описание зверей.
 // Если очередное слово этого текста - Tiger, Wolf или Fox, функция должна поместить соответствующего зверя в зоопарк.
@@ -18,18 +37,21 @@ Zoo CreateZoo(istream& in) {
   Zoo zoo;
   string word;
   while (in >> word) {
-    if (word == "Tiger") {
-      Tiger t;
-      zoo.push_back(t);
-    } else if (word == "Wolf") {
-      Wolf w;
-      zoo.push_back(w);
-    } else if (word == "Fox") {
-      Fox f;
-      zoo.push_back(f);
-    } else {
-      throw runtime_error("Unknown animal!");
-    }
+      Animals animal_kind = GetAnimalType(word);
+      switch (animal_kind){
+          case Animals::Tiger:
+              zoo.push_back(make_unique<Tiger>());
+              break;
+          case Animals::Wolf:
+              zoo.push_back(make_unique<Wolf>());
+              break;
+          case Animals::Fox:
+              zoo.push_back(make_unique<Fox>());
+              break;
+          default:
+              throw runtime_error("Unknown animal!");
+              break;
+      }
   }
   return zoo;
 }
@@ -39,7 +61,7 @@ Zoo CreateZoo(istream& in) {
 // Разделяйте голоса разных зверей символом перевода строки '\n'.
 void Process(const Zoo& zoo, ostream& out) {
   for (const auto& animal : zoo) {
-    out << animal.Voice() << "\n";
+    out << animal->Voice() << "\n";
   }
 }
 

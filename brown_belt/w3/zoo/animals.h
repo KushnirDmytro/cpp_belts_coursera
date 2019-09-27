@@ -12,7 +12,8 @@ public:
 
 class Tiger: public Animal {
   std::string Voice() const override {
-    return "Rrrr";
+      static const std::string voice_sound = "Rrrr";
+    return voice_sound;
   }
 };
 
