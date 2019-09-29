@@ -70,20 +70,16 @@ static const unordered_map<string, Command> getCommand{
 
 
 
-void RunGenderStatistics(char gender,  ostream& os, vector<Person> people){
+void RunGenderStatistics(char gender,  ostream& os, const vector<Person>& sorted_name_male, const vector<Person>& sorted_name_female ){
+    const vector<Person>& people = gender == 'M' ? sorted_name_male : sorted_name_female;
     IteratorRange range{
             begin(people),
-            partition(begin(people), end(people), [gender](Person& p) {
-                return p.is_male == (gender == 'M');
-            })
+            end(people)
     };
 
     if (range.begin() == range.end()) {
         os << "No people of gender " << gender << '\n';
     } else {
-        sort(range.begin(), range.end(), [](const Person& lhs, const Person& rhs) {
-            return lhs.name < rhs.name;
-        });
         const string* most_popular_name = &range.begin()->name;
         int count = 1;
         for (auto i = range.begin(); i != range.end(); ) {
@@ -102,18 +98,12 @@ void RunGenderStatistics(char gender,  ostream& os, vector<Person> people){
     }
 }
 
-    void RunWealthStatistics(int count,  ostream& os,  vector<Person> wealth_sorted_people){
+    void RunWealthStatistics(int count,  ostream& os,  const vector<Person> &wealth_sorted_people){
     auto head = Head(wealth_sorted_people, count);
 
-    partial_sort(
-            head.begin(), head.end(), end(wealth_sorted_people), [](const Person& lhs, const Person& rhs) {
-                return lhs.income > rhs.income;
-            }
-    );
-
     int total_income = accumulate(
-            head.begin(), head.end(), 0, [](int cur, Person& p) {
-                return p.income += cur;
+            head.begin(), head.end(), 0, [](int cur, const Person& p) {
+                return p.income + cur;
             }
     );
     os << "Top-" << count << " people have total income " << total_income << '\n';
@@ -148,7 +138,24 @@ void RunStatistics(istream &istr, ostream& os){
         return buf_people;
     }(sorted_age_people);
 
+    vector<Person> sorted_name_men_people;
+    vector<Person> sorted_name_women_people;
 
+    copy_if(begin(buf_people), end(buf_people), back_inserter(sorted_name_men_people), [](const Person& p){ return p.is_male;});
+    copy_if(begin(buf_people), end(buf_people), back_inserter(sorted_name_women_people), [](const Person& p){ return !p.is_male;});
+    sort(sorted_name_men_people.begin(), sorted_name_men_people.end(), [](const Person& lhs, const Person& rhs) {
+        return lhs.name < rhs.name;
+    });
+    sort(sorted_name_women_people.begin(), sorted_name_women_people.end(), [](const Person& lhs, const Person& rhs) {
+        return lhs.name < rhs.name;
+    });
+
+    stringstream temp_os;
+    RunGenderStatistics('W', temp_os, sorted_name_men_people, sorted_name_women_people);
+    string cached_female_name_request{temp_os.str()};
+    temp_os.str("");
+    RunGenderStatistics('M', temp_os, sorted_name_men_people, sorted_name_women_people);
+    string cached_male_name_request{temp_os.str()};
 
 
 
@@ -165,14 +172,18 @@ void RunStatistics(istream &istr, ostream& os){
             case (Command::WEALTHY):{
                 int count;
                 istr >> count;
-                RunWealthStatistics(count, os, sorted_age_people);
+                RunWealthStatistics(count, os, sorted_wealth_people);
 
                 break;
             }
             case (Command::POPULAR_NAME):{
                 char gender;
                 istr >> gender;
-                RunGenderStatistics(gender, os, sorted_age_people);
+                if (gender == 'M')
+                    os << cached_male_name_request;
+                else
+                    os << cached_female_name_request;
+//                RunGenderStatistics(gender, os, sorted_name_men_people, sorted_name_women_people);
                 break;
             }
         }
