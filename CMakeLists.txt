@@ -27,8 +27,8 @@ endif()
 set(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra -pthread")
 
 add_executable(cpp_belts
-        brown_belt/w3/pipeline/pipeline.cpp
-        )
+        brown_belt/w3/exptession_tree/main.cpp
+        brown_belt/w3/exptession_tree/expression_tree.cpp)
 target_include_directories(cpp_belts PRIVATE common_headers)
 
 #add_executable(cpp_belts main.cpp)
