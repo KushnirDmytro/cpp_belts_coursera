@@ -20,7 +20,7 @@ namespace Expressions{
     private:
         int val_;
     };
-
+    
     class Operation : public Expression {
     public:
         Operation(ExpressionPtr lhs, ExpressionPtr rhs) : lhs_{move(lhs)}, rhs_{move(rhs)} {}
