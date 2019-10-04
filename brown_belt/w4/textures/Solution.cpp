@@ -44,7 +44,7 @@ public:
      void SetSize(Size new_size) final { size_ = new_size; }
      Size GetSize() const final { return size_; }
 
-     void SetTexture(std::shared_ptr<ITexture> new_texture) final { texture_ = new_texture; }
+     void SetTexture(std::shared_ptr<ITexture> new_texture) final { texture_ = move(new_texture); }
      ITexture* GetTexture() const final {
          return texture_ ?
                 texture_.get() :
@@ -56,7 +56,6 @@ public:
 
          Size canvas_image_size{static_cast<int>(canvas_image[0].size()),
                                 static_cast<int>(canvas_image.size())};
-
          Size im_tx_overlap = sh_tx_overlap & canvas_image_size;
          Size sh_im_overlap = canvas_image_size & size_;
          return {sh_tx_overlap, im_tx_overlap, sh_im_overlap};
@@ -91,7 +90,11 @@ void DrawFigure(const AbstractFigure *fig, Image& canvas_image){
     Point p{0, 0};
     for (; p.y < sh_im_overlap.height; ++p.y,  p.x = 0){
         for (; p.x < sh_im_overlap.width; ++p.x){
-            if (fig->isShapeCovered(p))
+            if (
+                    fig->isShapeCovered(p) &&
+                    p.y + shape_origin.y < canvas_image.size() &&
+                    p.x + shape_origin.x < canvas_image[0].size()
+                    )
             canvas_image[p.y + shape_origin.y][p.x + shape_origin.x] = \
                 fig->isTextured(p)
                 ? texture_im[p.y][p.x] \
