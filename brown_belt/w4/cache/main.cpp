@@ -128,13 +128,16 @@ void TestCaching(const Library& lib) {
   // недостаточно, чтобы полностью проверить правильность реализации стратегии
   // замещения элементов в кэше. Для этих целей можете написать тест
   // самостоятельно.
-  const auto c1 = cache->GetBook(lib.book_names[0]);
-  const auto cx = cache->GetBook(lib.book_names[1]);
-    const auto c2 = cache->GetBook(lib.book_names[0]);
-    const auto c3 = cache->GetBook(lib.book_names[0]);
+    const auto c1 = cache->GetBook(lib.book_names[0]);
+//  const auto cx = cache->GetBook(lib.book_names[1]);
+    const auto c2 = cache->GetBook(lib.book_names[2]);
+    const auto c3 = cache->GetBook(lib.book_names[2]);
+    cout << c1.get() << endl;
+    cout << c2.get() << endl;
+    cout << c3.get() << endl;
     ASSERT_EQUAL(c1, c2);
     ASSERT_EQUAL(c2.get(), c3.get());
-  ASSERT_EQUAL(unpacker->GetUnpackedBooksCount(), 2);
+  ASSERT_EQUAL(unpacker->GetUnpackedBooksCount(), 1);
 }
 
 
@@ -194,7 +197,11 @@ int main() {
     // будет другой набор, намного больше.
     {
       "Sherlock Holmes",
+
       "Don Quixote",
+
+      "Sherlock Holmes",
+
       "Harry Potter",
       "A Tale of Two Cities",
       "The Lord of the Rings",
@@ -210,7 +217,7 @@ int main() {
 #define RUN_CACHE_TEST(tr, f) tr.RunTest([&lib] { f(lib); }, #f)
 
   TestRunner tr;
-  RUN_CACHE_TEST(tr, TestUnpacker);
+//  RUN_CACHE_TEST(tr, TestUnpacker);
   RUN_CACHE_TEST(tr, TestMaxMemory);
   RUN_CACHE_TEST(tr, TestCaching);
   RUN_CACHE_TEST(tr, TestSmallCache);

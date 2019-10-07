@@ -13,19 +13,19 @@ class LruCache : public ICache {
 
     struct Cache{
     private:
-        unordered_map<string, list<shared_ptr<IBook>>::iterator> index_;
-        list<shared_ptr<IBook>> storage_;
+        unordered_map<string, list<BookPtr>::iterator> index_;
+        list<BookPtr> storage_;
         mutex mt_;
         size_t stored_bytes_{0};
     public:
 
         const size_t max_stored_;
 
-        Cache( size_t max_stored) : max_stored_{max_stored} {};
+        Cache(size_t max_stored) : max_stored_{max_stored} {};
 
         struct Access{
-            unordered_map<string, list<shared_ptr<IBook>>::iterator>& index;
-            list<shared_ptr<IBook>>& storage_;
+            unordered_map<string, list<BookPtr>::iterator>& index;
+            list<BookPtr>& storage_;
             size_t & stored_bytes_;
             const lock_guard<mutex> lock_;
         };
@@ -38,7 +38,34 @@ class LruCache : public ICache {
         }
     };
 
-public:
+    void PopLRUBook(Cache::Access& cache_handle){
+        auto LRU_book_iter = cache_handle.storage_.begin();
+        cache_handle.index.erase(LRU_book_iter->get()->GetName());
+        cache_handle.stored_bytes_ -= LRU_book_iter->get()->GetContent().size();
+        cache_handle.storage_.erase(LRU_book_iter);
+    }
+
+    pair<BookPtr, bool> PushBackBook(const BookPtr &book, Cache::Access& cache_handle) {
+        cache_handle.storage_.push_back(book);
+        auto book_storage_it = prev(cache_handle.storage_.end());
+        cache_handle.stored_bytes_ += book_storage_it->get()->GetContent().size();
+        cache_handle.index[book_storage_it->get()->GetName()] = book_storage_it;
+
+        while (cache_handle.stored_bytes_ > cache_.max_stored_ )
+            PopLRUBook(cache_handle);
+        if (cache_handle.storage_.empty()){
+            return {nullptr, false};
+        } else {
+            return {*book_storage_it, true};
+        }
+    }
+
+
+        static void UpdateRating(list<BookPtr>::iterator& it, Cache::Access& cache_handle) {
+            cache_handle.storage_.splice(cache_handle.storage_.end(), cache_handle.storage_, it);
+        }
+
+        public:
   LruCache(
       shared_ptr<IBooksUnpacker> books_unpacker,
       const Settings& settings
@@ -46,34 +73,16 @@ public:
   cache_{settings.max_memory},
   archive_{move(books_unpacker)}
   {
+
   }
 
-  void PopLRUBook(Cache::Access& cache_handle){
-      auto LRU_book_iter = cache_handle.storage_.begin();
-      cache_handle.index.erase(LRU_book_iter->get()->GetName());
-      cache_handle.stored_bytes_ -= -
-              LRU_book_iter->get()->GetContent().size();
-      cache_handle.storage_.erase(LRU_book_iter);
-  }
 
-  void TryPushBook(const shared_ptr<IBook> &book, Cache::Access& cache_handle){
-      if (cache_.max_stored_ >= cache_handle.stored_bytes_ + book->GetContent().size()){
-          cache_handle.storage_.push_back(book);
-          const auto book_storage_it = prev(cache_handle.storage_.end());
-          cache_handle.stored_bytes_ += book_storage_it->get()->GetContent().size();
-          cache_handle.index[book_storage_it->get()->GetName()] = book_storage_it;
-      }
-  }
 
-  void UpdateRating(list<shared_ptr<IBook>>::iterator it, Cache::Access& cache_handle){
-      cache_handle.storage_.splice(cache_handle.storage_.end(), cache_handle.storage_, it);
-  }
+
 
   BookPtr GetBook(const string& book_name) override {
 
       Cache::Access acc = cache_.GetAccess();
-
-//      cout << acc.stored_bytes_ << endl;
 
       auto it = acc.index.find(book_name);
       bool is_in_cache = it != acc.index.end();
@@ -81,16 +90,16 @@ public:
       if (! is_in_cache){
 
           // TODO check if is not too time consuming
-          shared_ptr<IBook> unpacked_book_ = archive_->UnpackBook(book_name);
+          BookPtr unpacked_book_ = archive_->UnpackBook(book_name);
           size_t unpacked_book_size = unpacked_book_->GetContent().size();
+
           while ( !acc.storage_.empty() &&
-                  acc.stored_bytes_ + unpacked_book_size >= cache_.max_stored_ ) {
+                  acc.stored_bytes_ + unpacked_book_size > cache_.max_stored_ ) {
               PopLRUBook(acc);
           }
 
-          TryPushBook(unpacked_book_, acc);
-
-          return unpacked_book_;
+          auto cached = PushBackBook(unpacked_book_, acc);
+          return cached.second ? cached.first : unpacked_book_;
       } else {
           UpdateRating(it->second, acc);
           return *it->second;
