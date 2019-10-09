@@ -27,8 +27,8 @@ endif()
 set(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra -pthread")
 
 add_executable(cpp_belts
-        brown_belt/w4/Booking/test.cpp
-        brown_belt/w4/Booking/booking.h)
+        brown_belt/w5/slow_ebook/slow.cpp
+        )
 target_include_directories(cpp_belts PRIVATE common_headers)
 
 #add_executable(cpp_belts main.cpp)

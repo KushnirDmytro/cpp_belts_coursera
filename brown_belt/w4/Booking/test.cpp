@@ -1,5 +1,5 @@
-#include "old_trip_manager.h"  // со старыми классами все тесты проходят
-//#include "new_trip_manager.h"
+//#include "old_trip_manager.h"  // со старыми классами все тесты проходят
+#include "new_trip_manager.h"
 
 #include "test_runner.h"
 
