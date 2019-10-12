@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <sstream>
+#include "test_runner.h"
 
 using namespace std;
 
@@ -13,6 +15,8 @@ public:
     reachable_lists_[start].push_back(finish);
     reachable_lists_[finish].push_back(start);
   }
+
+
   int FindNearestFinish(int start, int finish) const {
     int result = abs(start - finish);
     if (reachable_lists_.count(start) < 1) {
@@ -30,28 +34,77 @@ public:
     }
     return result;
   }
+
 private:
   map<int, vector<int>> reachable_lists_;
 };
 
 
-int main() {
-  RouteManager routes;
+void RunRouteManager(istream& is, ostream& os){
+    RouteManager routes;
 
-  int query_count;
-  cin >> query_count;
+    int query_count;
+    is >> query_count;
 
-  for (int query_id = 0; query_id < query_count; ++query_id) {
-    string query_type;
-    cin >> query_type;
-    int start, finish;
-    cin >> start >> finish;
-    if (query_type == "ADD") {
-      routes.AddRoute(start, finish);
-    } else if (query_type == "GO") {
-      cout << routes.FindNearestFinish(start, finish) << "\n";
+    for (int query_id = 0; query_id < query_count; ++query_id) {
+        string query_type;
+        is >> query_type;
+        int start, finish;
+        is >> start >> finish;
+        if (query_type == "ADD") {
+            routes.AddRoute(start, finish);
+        } else if (query_type == "GO") {
+            os << routes.FindNearestFinish(start, finish) << "\n";
+        }
     }
-  }
+
+}
+
+
+void TestExpresses(){
+    vector<string> queries {
+            "7\n",
+            "ADD -2 5\n",
+            "ADD 10 4\n",
+            "ADD 5 8\n",
+            "GO 4 10\n",
+            "GO 4 -2\n",
+            "GO 5 0\n",
+            "GO 5 100\n"
+    };
+    vector<int> expected {
+            0,
+            6,
+            2,
+            92
+    };
+
+    stringstream is;
+    for (const auto& q: queries){
+        is << q;
+    }
+    stringstream expected_s;
+    for (const auto& er: expected){
+        expected_s << er << '\n';
+    }
+
+    stringstream os;
+    RunRouteManager(is, os);
+    int distance;
+    for (const auto& d: expected){
+        os >> distance;
+        cout << distance << " : " << d << endl;
+        ASSERT_EQUAL(d, distance);
+    }
+}
+
+
+
+int main() {
+    TestRunner tr;
+    RUN_TEST(tr, TestExpresses);
+
+    RunRouteManager(cin, cout);
 
   return 0;
 }
