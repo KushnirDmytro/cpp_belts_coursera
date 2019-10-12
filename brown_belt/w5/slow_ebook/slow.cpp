@@ -1,8 +1,6 @@
 #include <iomanip>
 #include <iostream>
 #include <vector>
-#include <utility>
-#include <sstream>
 #include <test_runner.h>
 
 using namespace std;
@@ -10,69 +8,45 @@ using namespace std;
 class ReadingManager {
 public:
   ReadingManager()
-      : user_page_counts_(MAX_USER_COUNT_ + 1, 0),
-        sorted_users_(),
-        user_positions_(MAX_USER_COUNT_ + 1, -1) {}
+  : users_up_to_page{0},
+  user_positions{0}
+  {}
 
-  void Read(int user_id, int page_count) {
-    if (user_page_counts_[user_id] == 0) {
-      AddUser(user_id);
-    }
-    user_page_counts_[user_id] = page_count;
-    int& position = user_positions_[user_id];
-    while (position > 0 && page_count > user_page_counts_[sorted_users_[position - 1]]) {
-      SwapUsers(position, position - 1);
-    }
+  void Read(const int user_id, const int page_count) {
+      const int old_user_position = user_positions[user_id];
+      for (auto pos = next(users_up_to_page.begin(), old_user_position + 1) ;
+              pos != next(users_up_to_page.begin(), page_count + 1) && pos != users_up_to_page.end() ;
+              ++pos)
+      {
+          ++(*pos);
+      }
+      user_positions[user_id] = page_count;
   }
 
   double Cheer(int user_id) const {
-    if (user_page_counts_[user_id] == 0) {
-      return 0;
-    }
-    const int user_count = GetUserCount();
-    if (user_count == 1) {
-      return 1;
-    }
-    const int page_count = user_page_counts_[user_id];
-    int position = user_positions_[user_id];
-    while (position < user_count &&
-      user_page_counts_[sorted_users_[position]] == page_count) {
-      ++position;
-    }
-    if (position == user_count) {
-        return 0;
-    }
-    // По умолчанию деление целочисленное, поэтому
-    // нужно привести числитель к типу double.
-    // Простой способ сделать это — умножить его на 1.0.
-    return (user_count - position) * 1.0 / (user_count - 1);
+
+      int current_page = user_positions[user_id];
+      if (current_page == 0)
+          return 0;
+      int users_at_current_page = users_up_to_page [current_page];
+      const int same_progress_as_user{users_at_current_page};
+      if (users_at_current_page == 1 && users_up_to_page[1] == 1)
+          return 1;  // only one
+      if (users_at_current_page == users_up_to_page[1])
+          return 0;  // no readers have the less progress
+      else {
+          return (1.0 * users_up_to_page[1] - same_progress_as_user) / (users_up_to_page[1] - 1);
+      }
+
   }
 
 private:
-  // Статическое поле не принадлежит какому-то конкретному
-  // объекту класса. По сути это глобальная переменная,
-  // в данном случае константная.
-  // Будь она публичной, к ней можно было бы обратиться снаружи
-  // следующим образом: ReadingManager::MAX_USER_COUNT.
   static const int MAX_USER_COUNT_ = 100'000;
+  static const int MAX_PAGE_COUNT_ = 1000;
 
-  vector<int> user_page_counts_;
-  vector<int> sorted_users_;   // отсортированы по убыванию количества страниц
-  vector<int> user_positions_; // позиции в векторе sorted_users_
+  array<int, MAX_PAGE_COUNT_+1> users_up_to_page {0};  // init with zeroes
+  array<int, MAX_USER_COUNT_+1> user_positions {0}; // position of each user on book
 
-  int GetUserCount() const {
-    return sorted_users_.size();
-  }
-  void AddUser(int user_id) {
-    sorted_users_.push_back(user_id);
-    user_positions_[user_id] = sorted_users_.size() - 1;
-  }
-  void SwapUsers(int lhs_position, int rhs_position) {
-    const int lhs_id = sorted_users_[lhs_position];
-    const int rhs_id = sorted_users_[rhs_position];
-    swap(sorted_users_[lhs_position], sorted_users_[rhs_position]);
-    swap(user_positions_[lhs_id], user_positions_[rhs_id]);
-  }
 };
 
 
@@ -159,29 +133,3 @@ int main() {
   RunReadingManager(cin, cout);
   return 0;
 }
-
-/*
-12
-CHEER 5
-READ 1 10
-CHEER 1
-READ 2 5
-READ 3 7
-CHEER 2
-CHEER 3
-READ 3 10
-CHEER 3
-READ 3 11
-CHEER 3
-CHEER 1
- */
-
-/*
- 0
-1
-0
-0.5
-0.5
-1
-0.5
- * */
