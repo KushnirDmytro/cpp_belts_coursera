@@ -12,31 +12,54 @@ using namespace std;
 class RouteManager {
 public:
   void AddRoute(int start, int finish) {
-    reachable_lists_[start].push_back(finish);
-    reachable_lists_[finish].push_back(start);
+    reachable_lists_[start].insert(finish);
+    reachable_lists_[finish].insert(start);
   }
 
+  optional<int> GetClosestReachableTo(const set<int>& reachable, int dest) const {
+      bool present = reachable.find(dest) != reachable.end();
+      if (present){
+          return 0;
+      }
+       auto upper_closest = reachable.upper_bound(dest);
+
+       auto lower_closest = reachable.lower_bound(dest);
+       bool under_lower_exist = lower_closest != reachable.begin();
+       if (under_lower_exist) {
+           --lower_closest;
+       }
+
+      optional<int> res {nullopt};
+
+      if (upper_closest != reachable.end() && lower_closest != reachable.end()) {
+          res =  min(abs (dest - *lower_closest) , abs (dest - *upper_closest) );
+      } else if (upper_closest == reachable.end() && lower_closest != reachable.end()) {
+          res =  abs(dest - *lower_closest);
+      } else if (upper_closest != reachable.end() && lower_closest == reachable.end()) {
+          res = abs (dest - *upper_closest);
+      }
+      return res;
+  }
 
   int FindNearestFinish(int start, int finish) const {
     int result = abs(start - finish);
     if (reachable_lists_.count(start) < 1) {
         return result;
     }
-    const vector<int>& reachable_stations = reachable_lists_.at(start);
+    const set<int>& reachable_stations = reachable_lists_.at(start);
     if (!reachable_stations.empty()) {
-      result = min(
-          result,
-          abs(finish - *min_element(
-              begin(reachable_stations), end(reachable_stations),
-              [finish](int lhs, int rhs) { return abs(lhs - finish) < abs(rhs - finish); }
-          ))
-      );
+        if (
+                optional<int>
+                        closest_to_finish {GetClosestReachableTo(reachable_stations ,finish)};
+                closest_to_finish) {
+            result = min(result, closest_to_finish.value());
+        }
     }
     return result;
   }
 
 private:
-  map<int, vector<int>> reachable_lists_;
+  map<int, set<int>> reachable_lists_;
 };
 
 
@@ -93,7 +116,6 @@ void TestExpresses(){
     int distance;
     for (const auto& d: expected){
         os >> distance;
-        cout << distance << " : " << d << endl;
         ASSERT_EQUAL(d, distance);
     }
 }
