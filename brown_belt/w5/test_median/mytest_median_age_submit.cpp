@@ -94,6 +94,15 @@ void test1_EmptyRange(){
     ASSERT( stat == 0);
 }
 
+void test1_s1_range(){
+    vector<Person> persons {
+            {1, Gender::MALE, false}
+    };
+    int stat = ComputeMedianAge(persons.begin(), persons.end());
+
+    ASSERT( stat == 1);
+}
+
 void test2_OddSizeRange(){
     vector<Person> persons {
             {1, Gender::MALE, false},
@@ -107,6 +116,29 @@ void test2_OddSizeRange(){
     ASSERT( stat == 3);
 }
 
+void testSwapOrder(){
+    AgeStats as_expect {
+            40,
+            40,
+            55,
+            40,
+            80,
+            55,
+            78
+    };
+    stringstream ss;
+    PrintStats(as_expect, ss);
+    vector<string> expected {
+            "Median age = 40",
+            "Median age for females = 40",
+            "Median age for males = 55",
+            "Median age for employed females = 40",
+            "Median age for unemployed females = 80",
+            "Median age for employed males = 55",
+            "Median age for unemployed males = 78"
+    };
+    assert_stream_has_vector_cntnt(expected, ss);
+}
 
 int main(){
     TestRunner tr;
@@ -115,5 +147,6 @@ int main(){
     RUN_TEST(tr, test2_OddSizeRange);
     RUN_TEST(tr, B3_and_4_reading_order_preserved);
     RUN_TEST(tr, test5_6ComputeMedianEnds);
+    RUN_TEST(tr, testSwapOrder);
 //    RunMedianAge(cin, cout);
 }
