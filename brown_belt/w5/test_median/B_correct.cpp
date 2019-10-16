@@ -9,6 +9,8 @@
 
 using namespace std;
 
+namespace B{
+
 enum class Gender {
     FEMALE,
     MALE
@@ -137,4 +139,5 @@ void PrintStats(const AgeStats& stats,
 int main() {
     PrintStats(ComputeStats(ReadPersons()));
     return 0;
+}
 }

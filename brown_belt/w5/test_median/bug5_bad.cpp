@@ -5,6 +5,8 @@
 
 using namespace std;
 
+namespace bad5{
+
 enum class Gender {
   FEMALE,
   MALE
@@ -35,56 +37,61 @@ int ComputeMedianAge(InputIt range_begin, InputIt range_end) {
   return middle->age;
 }
 
+void PrintPerson(istream& is, ostream& os){
+    int person_count;
+    is >> person_count;
+    vector<Person> persons;
+    persons.reserve(person_count);
+    for (int i = 0; i < person_count; ++i) {
+        int age, gender, is_employed;
+        is >> age >> gender >> is_employed;
+        Person person{
+                age,
+                static_cast<Gender>(gender),
+                is_employed == 1
+        };
+        persons.push_back(person);
+    }
+
+    auto females_end = partition(
+            begin(persons), end(persons),
+            [](const Person& p) {
+                return p.gender == Gender::FEMALE;
+            }
+    );
+    auto employed_females_end = partition(
+            begin(persons), females_end,
+            [](const Person& p) {
+                return p.is_employed;
+            }
+    );
+    auto employed_males_end = partition(
+            females_end, end(persons),
+            [](const Person& p) {
+                return p.is_employed;
+            }
+    );
+
+    os << "Median age = "
+         << ComputeMedianAge(begin(persons), end(persons))         << endl
+         << "Median age for females = "
+         << ComputeMedianAge(begin(persons), females_end)          << endl
+         << "Median age for males = "
+         << ComputeMedianAge(females_end, end(persons))            << endl
+         << "Median age for employed females = "
+         << ComputeMedianAge(begin(persons), employed_females_end) << endl
+         << "Median age for unemployed females = "
+         << ComputeMedianAge(employed_females_end, females_end)    << endl
+         << "Median age for employed males = "
+         << ComputeMedianAge(employed_males_end, females_end)      << endl
+         << "Median age for unemployed males = "
+         << ComputeMedianAge(employed_males_end, end(persons))     << endl;
+
+}
+
 int main() {
-  int person_count;
-  cin >> person_count;
-  vector<Person> persons;
-  persons.reserve(person_count);
-  for (int i = 0; i < person_count; ++i) {
-    int age, gender, is_employed;
-    cin >> age >> gender >> is_employed;
-    Person person{
-        age,
-        static_cast<Gender>(gender),
-        is_employed == 1
-    };
-    persons.push_back(person);
-  }
-
-  auto females_end = partition(
-      begin(persons), end(persons),
-      [](const Person& p) {
-        return p.gender == Gender::FEMALE;
-      }
-  );
-  auto employed_females_end = partition(
-      begin(persons), females_end,
-      [](const Person& p) {
-        return p.is_employed;
-      }
-  );
-  auto employed_males_end = partition(
-      females_end, end(persons),
-      [](const Person& p) {
-        return p.is_employed;
-      }
-  );
-
-  cout << "Median age = "
-       << ComputeMedianAge(begin(persons), end(persons))         << endl
-       << "Median age for females = "
-       << ComputeMedianAge(begin(persons), females_end)          << endl
-       << "Median age for males = "
-       << ComputeMedianAge(females_end, end(persons))            << endl
-       << "Median age for employed females = "
-       << ComputeMedianAge(begin(persons), employed_females_end) << endl
-       << "Median age for unemployed females = "
-       << ComputeMedianAge(employed_females_end, females_end)    << endl
-       << "Median age for employed males = "
-       << ComputeMedianAge(employed_males_end, females_end)      << endl
-       << "Median age for unemployed males = "
-       << ComputeMedianAge(employed_males_end, end(persons))     << endl;
 
   return 0;
 }
 
+}
