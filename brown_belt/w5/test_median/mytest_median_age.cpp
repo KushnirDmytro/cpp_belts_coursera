@@ -97,13 +97,13 @@ void Test1(){
             "Median age for unemployed males = 78"
     };
 
-        bad3::PrintPerson(iss, oss);
+        bad5::PrintPerson(iss, oss);
 
     assert_stream_has_vector_cntnt(expected, oss);
 };
 
 
-void B3_reading_order_preserved(){
+void B3_and_4_reading_order_preserved(){
 vector<B::Person> ps{
         {31, B::Gender::FEMALE, false},
         {31, B::Gender::MALE, false},
@@ -122,19 +122,40 @@ stringstream iss;
 for (const auto &per_str : input){
     iss << per_str;
 }
-
-//cout << iss.str() << endl;
     vector<B::Person> result = B::ReadPersons(iss);
-
-ASSERT_EQUAL(result, ps);
-
-//    assert_stream_has_vector_cntnt(expected, oss);
-
+    ASSERT_EQUAL(result, ps);
 };
+
+    bool operator==(const B::AgeStats &lhs, const B::AgeStats &rhs){
+        return lhs.employed_females == rhs.employed_females &&
+        lhs.employed_males == rhs.employed_males &&
+        lhs.females == rhs.females &&
+        lhs.males == rhs.males &&
+        lhs.total == rhs.total &&
+        lhs.unemployed_females == rhs.unemployed_females &&
+        lhs.unemployed_males == rhs.unemployed_males;
+    }
+
+void test5ComputeMedianEndsMisplaced(){
+    vector<B::Person> persons {
+            {31, B::Gender::MALE, false},
+            {40, B::Gender::FEMALE, true},
+            {24, B::Gender::MALE, true},
+            {20, B::Gender::FEMALE, true},
+            {80, B::Gender::FEMALE, false},
+            {78, B::Gender::MALE, false},
+            {10, B::Gender::FEMALE, false},
+            {55, B::Gender::MALE, true}
+    };
+    B::AgeStats as = B::ComputeStats(persons);
+    B::AgeStats as_expect {40, 40, 55, 40, 80, 55, 78};
+    ASSERT( as_expect ==  as);
+}
 
 int main(){
     TestRunner tr;
 //    RUN_TEST(tr, Test1);
-    RUN_TEST(tr, B3_reading_order_preserved);
+    RUN_TEST(tr, B3_and_4_reading_order_preserved);
+    RUN_TEST(tr, test5ComputeMedianEndsMisplaced);
 //    RunMedianAge(cin, cout);
 }
