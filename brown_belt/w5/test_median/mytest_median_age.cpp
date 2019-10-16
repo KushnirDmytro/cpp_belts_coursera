@@ -67,14 +67,14 @@ void assert_stream_has_vector_cntnt(const vector<string> &expected, stringstream
 
 void Test1(){
         vector<Person> persons {
-            {31, Gender::MALE, false},
-            {40, Gender::FEMALE, true},
-            {24, Gender::MALE, true},
-            {20, Gender::FEMALE, true},
-            {80, Gender::FEMALE, false},
-            {78, Gender::MALE, false},
-            {10, Gender::FEMALE, false},
-            {55, Gender::MALE, true}
+//            {31, Gender::MALE, false},
+//            {40, Gender::FEMALE, true},
+//            {24, Gender::MALE, true},
+//            {20, Gender::FEMALE, true},
+//            {80, Gender::FEMALE, false},
+//            {78, Gender::MALE, false},
+//            {10, Gender::FEMALE, false},
+//            {55, Gender::MALE, true}
         };
 
         stringstream oss;
@@ -96,8 +96,17 @@ void Test1(){
             "Median age for employed males = 55",
             "Median age for unemployed males = 78"
     };
+//    vector<string> expected {
+//            "Median age = 0",
+//            "Median age for females = 0",
+//            "Median age for males = 0",
+//            "Median age for employed females = 0",
+//            "Median age for unemployed females = 0",
+//            "Median age for employed males = 0",
+//            "Median age for unemployed males = 0"
+//    };
 
-        bad5::PrintPerson(iss, oss);
+        bad1::PrintPerson(iss, oss);
 
     assert_stream_has_vector_cntnt(expected, oss);
 };
@@ -136,7 +145,7 @@ for (const auto &per_str : input){
         lhs.unemployed_males == rhs.unemployed_males;
     }
 
-void test5ComputeMedianEndsMisplaced(){
+void test5_6ComputeMedianEnds(){
     vector<B::Person> persons {
             {31, B::Gender::MALE, false},
             {40, B::Gender::FEMALE, true},
@@ -148,14 +157,46 @@ void test5ComputeMedianEndsMisplaced(){
             {55, B::Gender::MALE, true}
     };
     B::AgeStats as = B::ComputeStats(persons);
-    B::AgeStats as_expect {40, 40, 55, 40, 80, 55, 78};
+    B::AgeStats as_expect {
+        40,
+        40,
+        55,
+        40,
+        80,
+        55,
+        78
+    };
     ASSERT( as_expect ==  as);
 }
+
+void test1_EmptyRange(){
+    vector<B::Person> persons {
+    };
+    int stat = B::ComputeMedianAge(persons.begin(), persons.end());
+
+    ASSERT( stat == 0);
+}
+
+void test2_OddSizeRange(){
+    vector<B::Person> persons {
+            {1, B::Gender::MALE, false},
+            {2, B::Gender::FEMALE, true},
+            {3, B::Gender::MALE, true},
+            {4, B::Gender::FEMALE, true},
+            {5, B::Gender::FEMALE, false}
+    };
+    int stat = B::ComputeMedianAge(persons.begin(), persons.end());
+
+    ASSERT( stat == 3);
+}
+
 
 int main(){
     TestRunner tr;
 //    RUN_TEST(tr, Test1);
+    RUN_TEST(tr, test1_EmptyRange);
+    RUN_TEST(tr, test2_OddSizeRange);
     RUN_TEST(tr, B3_and_4_reading_order_preserved);
-    RUN_TEST(tr, test5ComputeMedianEndsMisplaced);
+    RUN_TEST(tr, test5_6ComputeMedianEnds);
 //    RunMedianAge(cin, cout);
 }
