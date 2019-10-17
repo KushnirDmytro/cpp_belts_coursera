@@ -20,7 +20,7 @@ bool IsSubdomain(string_view subdomain, string_view domain) {
         return false;
 
     string_view subdomains_domain = subdomain.substr(subdomain_size - domain_size, domain_size);
-    return subdomains_domain == domain;
+    return subdomains_domain == domain && (domain_size == subdomain_size || subdomain[subdomain_size - domain_size - 1] == '.') ;
 
 //    return (domain == subdomain)
 
@@ -286,11 +286,11 @@ void TestEmptySubdomainString(){
             "1",
             "l",
             "1",
-            "l"
+            "ll"
     };
 
     static const vector<string> expected {
-            "Bad"
+            "Good"
     };
 
     stringstream iss;
@@ -312,11 +312,11 @@ void TestEmptySubdomainString(){
 int main() {
 
     TestRunner tr;
-//    RUN_TEST(tr, TestA);
-//    RUN_TEST(tr, TestB);
-//    RUN_TEST(tr, TestEmpty);
-//    RUN_TEST(tr, TestEmpty2);
-//    RUN_TEST(tr, TestEmptyDomainString);
+    RUN_TEST(tr, TestA);
+    RUN_TEST(tr, TestB);
+    RUN_TEST(tr, TestEmpty);
+    RUN_TEST(tr, TestEmpty2);
+    RUN_TEST(tr, TestEmptyDomainString);
     RUN_TEST(tr, TestEmptySubdomainString);
 
    const vector<string> banned_domains = ReadDomains(cin);
