@@ -9,6 +9,17 @@ using namespace std;
 
 
 bool IsSubdomain(string_view subdomain, string_view domain) {
+
+    size_t domain_size = domain.size();
+    size_t subdomain_size = subdomain.size();
+    if (domain_size > subdomain_size)
+        return false;
+
+    string_view subdomains_domain = subdomain.substr(subdomain_size - domain_size, domain_size);
+    return subdomains_domain == domain;
+
+//    return (domain == subdomain)
+
   auto i = subdomain.size() - 1;
   auto j = domain.size() - 1;
   while (i >= 0 && j >= 0) {
@@ -35,9 +46,15 @@ vector<string> ReadDomains(istream& is) {
 }
 
 void CheckedDomainStatus(const vector<string> &domains_to_check, const vector<string> &banned_domains){
-    for (const string_view domain : domains_to_check) {
-        if (const auto it = upper_bound(begin(banned_domains), end(banned_domains), domain);
-                it != begin(banned_domains) && IsSubdomain(domain, *prev(it))) {
+    for (const string_view subdomain : domains_to_check) {
+        bool is_good{true};
+        for (const string_view bd: banned_domains){
+            if (IsSubdomain(subdomain, bd)){
+                is_good = false;
+                break;
+            }
+        }
+        if (is_good){
             cout << "Good" << endl;
         } else {
             cout << "Bad" << endl;
@@ -46,9 +63,9 @@ void CheckedDomainStatus(const vector<string> &domains_to_check, const vector<st
 }
 
 
-int main() {
+void TestA(){
 
-    vector<string> in_data {
+    static const vector<string> in_data {
             "4",
             "ya.ru",
             "maps.me",
@@ -66,31 +83,21 @@ int main() {
 
     stringstream iss;
     for (const string& s: in_data){
-         iss << s << '\n';
+        iss << s << '\n';
     }
 
-   vector<string> banned_domains = ReadDomains(iss);
-   vector<string> domains_to_check = ReadDomains(iss);
+    vector<string> banned_domains = ReadDomains(iss);
+    vector<string> domains_to_check = ReadDomains(iss);
 
-  for (string& domain : banned_domains) {
-    reverse(begin(domain), end(domain));  // WHY???
-    cout << domain << endl;
-  }
-  sort(begin(banned_domains), end(banned_domains));
-  for (const auto& d : banned_domains){
-      cout << d << endl;
-  }
 
-  size_t insert_pos = 0;
-  for ( string& domain : banned_domains) {
-    if (insert_pos == 0 || !IsSubdomain(domain, banned_domains[insert_pos - 1])) {
-        domain.swap(banned_domains[insert_pos++]);
-    }
-  }
-    for (const auto& d : banned_domains){
-        cout << d << endl;
-    }
-  banned_domains.resize(insert_pos);
+    CheckedDomainStatus(domains_to_check, banned_domains);
+};
+
+int main() {
+
+   const vector<string> banned_domains = ReadDomains(cin);
+   const vector<string> domains_to_check = ReadDomains(cin);
+
   CheckedDomainStatus(domains_to_check, banned_domains);
   return 0;
 }
