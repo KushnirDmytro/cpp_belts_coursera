@@ -27,8 +27,7 @@ endif()
 set(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra -pthread")
 
 add_executable(cpp_belts
-#        brown_belt/w5/test_median/A_correct.cpp
-        brown_belt/w5/test_median/mytest_median_age.cpp)
+        brown_belt/w5/bad_domains/domains_bad_wa.cpp)
 target_include_directories(cpp_belts PRIVATE common_headers)
 
 #add_executable(cpp_belts main.cpp)
