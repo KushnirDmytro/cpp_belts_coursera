@@ -19,20 +19,9 @@ bool IsSubdomain(string_view subdomain, string_view domain) {
     if (domain_size > subdomain_size)
         return false;
 
-    string_view subdomains_domain = subdomain.substr(subdomain_size - domain_size, domain_size);
-    return subdomains_domain == domain && (domain_size == subdomain_size || subdomain[subdomain_size - domain_size - 1] == '.') ;
+    string_view subdomains_domain = subdomain.substr(0, domain_size);
+    return subdomains_domain == domain && (domain_size == subdomain_size || subdomain[domain_size] == '.') ;
 
-//    return (domain == subdomain)
-
-  auto i = subdomain.size() - 1;
-  auto j = domain.size() - 1;
-  while (i >= 0 && j >= 0) {
-    if (subdomain[i--] != domain[j--]) {
-      return false;
-    }
-  }
-  return (i < 0 && domain[j] == '.')
-      || (j < 0 && subdomain[i] == '.');
 }
 
 
@@ -45,6 +34,7 @@ vector<string> ReadDomains(istream& is) {
   for (string& domain : domains)
   {
         is >> domain;
+        reverse(domain.begin(), domain.end());
   }
   return domains;
 }
