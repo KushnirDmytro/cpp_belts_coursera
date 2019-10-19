@@ -7,7 +7,6 @@
 
 #include "test_runner.h"
 
-//#include ""
 
 using namespace std;
 
@@ -21,7 +20,6 @@ bool IsSubdomain(string_view subdomain, string_view domain) {
 
     string_view subdomains_domain = subdomain.substr(0, domain_size);
     return subdomains_domain == domain && (domain_size == subdomain_size || subdomain[domain_size] == '.') ;
-
 }
 
 
@@ -39,7 +37,7 @@ vector<string> ReadDomains(istream& is) {
   return domains;
 }
 
-void CheckedDomainStatus(const vector<string> &domains_to_check, const vector<string> &banned_domains, ostream& oss){
+void CheckedDomainStatus(const vector<string> &domains_to_check, const set<string> &banned_domains, ostream& oss){
     for (const string_view subdomain : domains_to_check) {
         bool is_good{true};
 //        if (subdomain.empty()) continue;
@@ -71,6 +69,24 @@ void assert_stream_has_vector_cntnt(const vector<string> &expected, stringstream
 };
 
 
+
+void RunDomainCheck(const vector<string>& in_data, const vector<string>& expected){
+    stringstream iss;
+    for (const string& s: in_data){
+        iss << s << '\n';
+    }
+
+    const vector<string> banned_domains = ReadDomains(iss);
+    const set<string> banned_domains_set = {move_iterator(banned_domains.begin()), move_iterator(banned_domains.end())};
+    const vector<string> domains_to_check = ReadDomains(iss);
+
+    stringstream oss;
+
+    CheckedDomainStatus(domains_to_check, banned_domains_set, oss);
+
+    assert_stream_has_vector_cntnt(expected, oss);
+}
+
 void TestB(){
 
     static const vector<string> in_data {
@@ -86,19 +102,7 @@ void TestB(){
             "Bad"
     };
 
-    stringstream iss;
-    for (const string& s: in_data){
-        iss << s << '\n';
-    }
-
-    vector<string> banned_domains = ReadDomains(iss);
-    vector<string> domains_to_check = ReadDomains(iss);
-
-    stringstream oss;
-
-    CheckedDomainStatus(domains_to_check, banned_domains, oss);
-
-    assert_stream_has_vector_cntnt(expected, oss);
+    RunDomainCheck(in_data, expected);
 
 };
 
@@ -134,19 +138,7 @@ void TestA(){
             "Good"
     };
 
-    stringstream iss;
-    for (const string& s: in_data){
-        iss << s << '\n';
-    }
-
-    vector<string> banned_domains = ReadDomains(iss);
-    vector<string> domains_to_check = ReadDomains(iss);
-
-    stringstream oss;
-
-    CheckedDomainStatus(domains_to_check, banned_domains, oss);
-
-    assert_stream_has_vector_cntnt(expected, oss);
+    RunDomainCheck(in_data, expected);
 
 };
 
@@ -179,19 +171,7 @@ void TestEmpty(){
             "Good"
     };
 
-    stringstream iss;
-    for (const string& s: in_data){
-        iss << s << '\n';
-    }
-
-    vector<string> banned_domains = ReadDomains(iss);
-    vector<string> domains_to_check = ReadDomains(iss);
-
-    stringstream oss;
-
-    CheckedDomainStatus(domains_to_check, banned_domains, oss);
-
-    assert_stream_has_vector_cntnt(expected, oss);
+    RunDomainCheck(in_data, expected);
 
 };
 
@@ -215,20 +195,7 @@ void TestEmpty2(){
     static const vector<string> expected {
 
     };
-
-    stringstream iss;
-    for (const string& s: in_data){
-        iss << s << '\n';
-    }
-
-    vector<string> banned_domains = ReadDomains(iss);
-    vector<string> domains_to_check = ReadDomains(iss);
-
-    stringstream oss;
-
-    CheckedDomainStatus(domains_to_check, banned_domains, oss);
-
-    assert_stream_has_vector_cntnt(expected, oss);
+    RunDomainCheck(in_data, expected);
 
 };
 
@@ -253,19 +220,7 @@ void TestEmptyDomainString(){
         "Good"
     };
 
-    stringstream iss;
-    for (const string& s: in_data){
-        iss << s << '\n';
-    }
-
-    vector<string> banned_domains = ReadDomains(iss);
-    vector<string> domains_to_check = ReadDomains(iss);
-
-    stringstream oss;
-
-    CheckedDomainStatus(domains_to_check, banned_domains, oss);
-
-    assert_stream_has_vector_cntnt(expected, oss);
+    RunDomainCheck(in_data, expected);
 
 };
 
@@ -282,22 +237,11 @@ void TestEmptySubdomainString(){
     static const vector<string> expected {
             "Good"
     };
+    RunDomainCheck(in_data, expected);
 
-    stringstream iss;
-    for (const string& s: in_data){
-        iss << s << '\n';
-    }
-
-    vector<string> banned_domains = ReadDomains(iss);
-    vector<string> domains_to_check = ReadDomains(iss);
-
-    stringstream oss;
-
-    CheckedDomainStatus(domains_to_check, banned_domains, oss);
-
-    assert_stream_has_vector_cntnt(expected, oss);
 
 };
+
 
 int main() {
 
@@ -310,8 +254,9 @@ int main() {
     RUN_TEST(tr, TestEmptySubdomainString);
 
    const vector<string> banned_domains = ReadDomains(cin);
+   const set<string> banned_domains_set = {move_iterator(banned_domains.begin()), move_iterator(banned_domains.end())};
    const vector<string> domains_to_check = ReadDomains(cin);
 
-  CheckedDomainStatus(domains_to_check, banned_domains, cout);
+  CheckedDomainStatus(domains_to_check, banned_domains_set, cout);
   return 0;
 }
