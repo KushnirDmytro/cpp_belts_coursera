@@ -7,11 +7,12 @@
 #include <algorithm>
 #include <map>
 #include <unordered_map>
-//#include <test_runner.h>
+#include <test_runner.h>
 
 using namespace std;
 static const int SECONDS_IN_DAY = 60 * 60 * 24;
 
+// TODO: remove string copy, use stringstream
 vector<string> splitStringBy(const string& s, char delim)
 {
     vector<string> result;
@@ -23,6 +24,7 @@ vector<string> splitStringBy(const string& s, char delim)
     }
     return result;
 }
+
 tm parseTime(const std::string& ts)
 {
     std::tm t;
@@ -52,7 +54,7 @@ class PersonalBudgetManager
         const double earning_{0.0};
     };
 
-    enum class QueryType
+    enum class RequestType
     {
         ComputeIncome,
         Earn,
@@ -111,6 +113,8 @@ private:
     std::unordered_map<time_t, double> spendings_;
 };
 
+
+
 void RunPersonnalBudgetManager(istream& is, ostream& os)
 {
     PersonalBudgetManager bm;
@@ -158,50 +162,49 @@ void RunPersonnalBudgetManager(istream& is, ostream& os)
 }
 
 
-//void TestPersonnalBudgetDesktopVersion()
-//{
-//    const vector<string> queries{
-//            "8\n",
-//            "Earn          2000-01-02 2000-01-06 20\n",
-//            "ComputeIncome 2000-01-01 2001-01-01\n",
-//            "PayTax        2000-01-02 2000-01-03 13\n",
-//            "ComputeIncome 2000-01-01 2001-01-01\n",
-//            "Spend         2000-12-30 2001-01-02 14\n",
-//            "ComputeIncome 2000-01-01 2001-01-01\n",
-//            "PayTax        2000-12-30 2000-12-30 13\n",
-//            "ComputeIncome 2000-01-01 2001-01-01\n"
-//    };
-//
-//    const vector<double> expected_results{
-//            20,
-//            18.96,
-//            8.46,
-//            8.46
-//    };
-//
-//    stringstream is;
-//    for(const auto& q : queries)
-//    {
-//        is << q;
-//    }
-//    stringstream expected;
-//    for(const auto& er : expected_results)
-//    {
-//        expected << er << '\n';
-//    }
-//
-//    stringstream os;
-//    RunPersonnalBudgetManager(is, os);
-//    double number;
-//    for(const auto& d : expected_results)
-//    {
-//        os >> number;
-//        //cout << "expect: " << d;
-//        //cout << "have: " << number << endl;
-//        ASSERT_EQUAL(d, number);
-//    }
-//}
+void TestPersonnalBudgetDesktopVersion()
+{
+    const vector<string> queries{
+            "8\n",
+            "Earn          2000-01-02 2000-01-06 20\n",
+            "ComputeIncome 2000-01-01 2001-01-01\n",
+            "PayTax        2000-01-02 2000-01-03 13\n",
+            "ComputeIncome 2000-01-01 2001-01-01\n",
+            "Spend         2000-12-30 2001-01-02 14\n",
+            "ComputeIncome 2000-01-01 2001-01-01\n",
+            "PayTax        2000-12-30 2000-12-30 13\n",
+            "ComputeIncome 2000-01-01 2001-01-01\n"
+    };
 
+    const vector<double> expected_results{
+            20,
+            18.96,
+            8.46,
+            8.46
+    };
+
+    stringstream is;
+    for(const auto& q : queries)
+    {
+        is << q;
+    }
+    stringstream expected;
+    for(const auto& er : expected_results)
+    {
+        expected << er << '\n';
+    }
+
+    stringstream os;
+    RunPersonnalBudgetManager(is, os);
+    double number;
+    for(const auto& d : expected_results)
+    {
+        os >> number;
+        //cout << "expect: " << d;
+        //cout << "have: " << number << endl;
+        ASSERT_EQUAL(d, number);
+    }
+}
 
 int main()
 {
@@ -211,9 +214,9 @@ int main()
     //ios::sync_with_stdio(false);
     //cin.tie(nullptr);
 
-    //ostringstream os;
-    //TestRunner tr;
-    //RUN_TEST(tr, TestPersonnalBudgetDesktopVersion);
+    ostringstream os;
+    TestRunner tr;
+    RUN_TEST(tr, TestPersonnalBudgetDesktopVersion);
     RunPersonnalBudgetManager(cin, cout);
     return 0;
 }

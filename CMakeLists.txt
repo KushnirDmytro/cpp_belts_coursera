@@ -28,7 +28,8 @@ endif()
 set(CMAKE_CXX_FLAGS "-O0 -Wall -pthread")
 
 add_executable(cpp_belts
-        brown_belt/w5/personal_budget/professional_desktop_version.cpp)
+        #brown_belt/w5/personal_budget/budget_good_base.cpp)
+        brown_belt/w5/personal_budget/mobile_version.cpp)
 target_include_directories(cpp_belts PRIVATE common_headers)
 
 #add_executable(cpp_belts main.cpp)
